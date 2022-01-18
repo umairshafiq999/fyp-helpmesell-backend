@@ -1,9 +1,7 @@
 from django.shortcuts import render
-from django.http import HttpResponse, JsonResponse
-from rest_framework.authentication import SessionAuthentication, BasicAuthentication
-from rest_framework.parsers import JSONParser
-from rest_framework.permissions import IsAuthenticated
-
+from django.http import HttpResponse
+from rest_framework import authentication
+from rest_framework import exceptions
 from .models import User
 from .serializers import UserSerializer
 from django.views.decorators.csrf import csrf_exempt
@@ -27,9 +25,7 @@ class UserAPIView(APIView):
             return Response(serializer.data, status.HTTP_201_CREATED)
         return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
-class UserDetailAPIView(APIView):
-    authentication_classes = [SessionAuthentication, BasicAuthentication]
-    permission_classes = [IsAuthenticated]
+class UserLoginAPIView(APIView):
     def get_object(self, id):
         try:
             return User.objects.get(id=id)
@@ -37,6 +33,6 @@ class UserDetailAPIView(APIView):
             return HttpResponse(status.HTTP_400_BAD_REQUEST)
 
     def get(self, request, id):
-        articles = self.get_object(id)
-        serializer = UserSerializer(articles)
+        users = self.get_object(id)
+        serializer = UserSerializer(users)
         return Response(serializer.data)

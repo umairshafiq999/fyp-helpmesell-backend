@@ -27,7 +27,7 @@ SECRET_KEY = 'django-insecure-%+!^xf6st9!-#36n3n&i1ls!h0e&&7^zb&b2e*q74xmmwxy6k*
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['finalproject-helpmesell.herokuapp.com','localhost']
+ALLOWED_HOSTS = ['finalproject-helpmesell.herokuapp.com','127.0.0.1']
 DISABLE_COLLECTSTATIC=1
 
 # Application definition
@@ -106,9 +106,11 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 REST_FRAMEWORK = {
+    'DATE_INPUT_FORMATS': ["%d-%m-%Y"],
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
+
     ]
 }
 
