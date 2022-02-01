@@ -1,31 +1,27 @@
 from rest_framework import serializers
-from .models import User
+from .models import User,Product
 from rest_framework.validators import UniqueTogetherValidator
+
 
 # Model Serializer
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = '__all__'
-
+        fields = ['id', 'first_name', 'last_name', 'username', 'password', 'dob', 'email', 'contact_no']
         validators = [
             UniqueTogetherValidator(
                 queryset=User.objects.all(),
-                fields=['Username']
+                fields=['username']
             )
         ]
 
-    def validate(self, data):
-        if data['Password'] != data['CPassword']:
-            raise serializers.ValidationError({'Password':'Passwords Did Not Match'})
-        return data
 
+class UserLoginSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['username', 'password']
 
-
-
-
-
-
-
-
-
+class ProductSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+        fields= '__all__'
