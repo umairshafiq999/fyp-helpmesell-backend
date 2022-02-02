@@ -21,6 +21,7 @@ class UserManager(BaseUserManager):
 
         user = self.model(
             username=username,
+            password=password,
             first_name=first_name,
             last_name=last_name,
             dob=dob,
@@ -32,9 +33,10 @@ class UserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, username, first_name, last_name, dob, email, contact_no,password=None):
+    def create_superuser(self, username,first_name, last_name, dob, email, contact_no,password=None):
         user = self.create_user(
             username=username,
+            password=password,
             first_name=first_name,
             last_name=last_name,
             dob=dob,
@@ -52,6 +54,7 @@ class User(AbstractBaseUser):
     first_name = models.CharField(verbose_name="First Name", max_length=50)
     last_name = models.CharField(verbose_name="Last Name", max_length=50)
     username = models.CharField(max_length=20, unique=True)
+    password = models.CharField(max_length=20)
     dob = models.DateField(verbose_name="Date Of Birth")
     email = models.CharField(max_length=50)
     contact_no = models.IntegerField(verbose_name="Contact No")
@@ -63,7 +66,7 @@ class User(AbstractBaseUser):
     is_superuser = models.BooleanField(default=False)
 
     USERNAME_FIELD = 'username'
-    REQUIRED_FIELDS = ['first_name', 'last_name', 'dob', 'email', 'contact_no']
+    REQUIRED_FIELDS = ['password','first_name', 'last_name', 'dob', 'email', 'contact_no']
 
     objects = UserManager()
 
@@ -84,4 +87,7 @@ class Product(models.Model):
     product_price = models.IntegerField(verbose_name="Product Price")
     product_description = models.CharField(verbose_name="Product Description",max_length=1000)
     product_reviews = models.CharField(verbose_name="Product Reviews",max_length= 1000)
-    product_image = models.ImageField(verbose_name="Product Image")
+    product_image = models.CharField(verbose_name="Product Image",max_length=1500)
+
+    def __str__(self):
+        return self.product_name

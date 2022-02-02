@@ -1,19 +1,23 @@
 from rest_framework import serializers
 from .models import User,Product
 from rest_framework.validators import UniqueTogetherValidator
-
-
+from django.contrib.auth.hashers import make_password
 # Model Serializer
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'first_name', 'last_name', 'username', 'password', 'dob', 'email', 'contact_no']
+        password = make_password(validated_data['password'])
         validators = [
             UniqueTogetherValidator(
                 queryset=User.objects.all(),
                 fields=['username']
             )
+
+
         ]
+
+
 
 
 class UserLoginSerializer(serializers.ModelSerializer):
