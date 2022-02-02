@@ -7,7 +7,6 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'first_name', 'last_name', 'username', 'password', 'dob', 'email', 'contact_no']
-        password = make_password(validated_data['password'])
         validators = [
             UniqueTogetherValidator(
                 queryset=User.objects.all(),
