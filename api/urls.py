@@ -1,4 +1,4 @@
-from .views import UserAPIView,UserLoginAPIView,ProductAPIView
+from .views import UserAPIView,UserLoginAPIView,ProductAPIView,PriceAPIView,ProductReviewAPIView
 from django.urls import path,include
 from rest_framework.authtoken.views import obtain_auth_token
 from django.conf.urls.static import static
@@ -9,6 +9,8 @@ urlpatterns = [
     path('userslogin/',UserLoginAPIView.as_view()),
     path('api-token-auth/', obtain_auth_token),
     path('product/',ProductAPIView.as_view()),
+    path('reviews/',ProductReviewAPIView.as_view()),
+    path('price/',PriceAPIView.as_view()),
 ]
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

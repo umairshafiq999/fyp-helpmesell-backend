@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 
 
 # Create your models here.
@@ -29,11 +29,10 @@ class UserManager(BaseUserManager):
             contact_no=contact_no,
         )
 
-        user.set_password(password)
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, username,first_name, last_name, dob, email, contact_no,password=None):
+    def create_superuser(self, username, first_name, last_name, dob, email, contact_no, password=None):
         user = self.create_user(
             username=username,
             password=password,
@@ -50,7 +49,7 @@ class UserManager(BaseUserManager):
         return user
 
 
-class User(AbstractBaseUser):
+class User(AbstractBaseUser, PermissionsMixin):
     first_name = models.CharField(verbose_name="First Name", max_length=50)
     last_name = models.CharField(verbose_name="Last Name", max_length=50)
     username = models.CharField(max_length=20, unique=True)
@@ -66,7 +65,7 @@ class User(AbstractBaseUser):
     is_superuser = models.BooleanField(default=False)
 
     USERNAME_FIELD = 'username'
-    REQUIRED_FIELDS = ['password','first_name', 'last_name', 'dob', 'email', 'contact_no']
+    REQUIRED_FIELDS = ['password', 'first_name', 'last_name', 'dob', 'email', 'contact_no']
 
     objects = UserManager()
 
@@ -78,16 +77,37 @@ class User(AbstractBaseUser):
 
     def has_module_perms(self, app_label):
         return True
+
     @property
     def token(self):
         return ''
 
+
 class Product(models.Model):
-    product_name = models.CharField(verbose_name="Product Name",max_length=100)
-    product_price = models.IntegerField(verbose_name="Product Price")
-    product_description = models.CharField(verbose_name="Product Description",max_length=1000)
-    product_reviews = models.CharField(verbose_name="Product Reviews",max_length= 1000)
-    product_image = models.CharField(verbose_name="Product Image",max_length=1500)
+    product_name = models.CharField(verbose_name="Product Name", max_length=100)
+    product_description = models.CharField(verbose_name="Product Description", max_length=1000)
+    product_image = models.CharField(verbose_name="Product Image", max_length=1500)
 
     def __str__(self):
         return self.product_name
+
+
+class Price(models.Model):
+    product = models.ForeignKey(Product, null=False, on_delete=models.CASCADE)
+    reference_site = models.CharField(verbose_name="Reference Site", max_length=1000)
+    product_price = models.IntegerField(verbose_name="Product Price")
+    min_price = models.IntegerField(verbose_name="Minimum Price")
+    max_price = models.IntegerField(verbose_name="Maximum Price")
+    offered_by = models.IntegerField(verbose_name="Offered By", default=False)
+    product_file = models.FileField(verbose_name="Upload CSV File", default=False,upload_to='LocalSellerData/')
+
+    def __str__(self):
+        return str(self.product)
+
+
+class ProductReview(models.Model):
+    product = models.ForeignKey(Product, null=False, on_delete=models.CASCADE)
+    product_reviews = models.CharField(verbose_name="Product Reviews", max_length=1000)
+
+    def __str__(self):
+        return str(self.product)
