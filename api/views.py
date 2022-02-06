@@ -60,6 +60,19 @@ class ProductAPIView(APIView):
         return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
 
+class ProductDetailAPIView(APIView):
+    def get_object(self, id):
+        try:
+            return Product.objects.get(id=id)
+        except Product.DoesNotExist:
+            return Response(status.HTTP_400_BAD_REQUEST)
+
+    def get(self, request, id):
+        products = self.get_object(id)
+        serializer = ProductSerializer(products)
+        return Response(serializer.data)
+
+
 class ProductReviewAPIView(APIView):
     def get(self, request):
         productreviews = ProductReview.objects.all()
@@ -76,6 +89,11 @@ class ProductReviewAPIView(APIView):
 
 
 class PriceAPIView(APIView):
+    def get(self, request):
+        ProductPrice = Price.objects.all()
+        serializer = ProductSerializer(ProductPrice, many=True)
+        return Response(serializer.data)
+
     def post(self, request):
         file = request.FILES.get('product_file')
         fileRead = xlrd.open_workbook(file)

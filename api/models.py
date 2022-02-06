@@ -84,7 +84,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 
 class Product(models.Model):
-    product_name = models.CharField(verbose_name="Product Name", max_length=100)
+    product_name = models.CharField(verbose_name="Product Name",max_length=100)
     product_description = models.CharField(verbose_name="Product Description", max_length=1000)
     product_image = models.CharField(verbose_name="Product Image", max_length=1500)
 
@@ -93,7 +93,7 @@ class Product(models.Model):
 
 
 class Price(models.Model):
-    product = models.ForeignKey(Product, null=False, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, null=False,on_delete=models.CASCADE)
     reference_site = models.CharField(verbose_name="Reference Site", max_length=1000)
     product_price = models.IntegerField(verbose_name="Product Price")
     min_price = models.IntegerField(verbose_name="Minimum Price")
@@ -106,7 +106,7 @@ class Price(models.Model):
 
 
 class ProductReview(models.Model):
-    product = models.ForeignKey(Product, null=False, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
     product_reviews = models.CharField(verbose_name="Product Reviews", max_length=1000)
 
     def __str__(self):
