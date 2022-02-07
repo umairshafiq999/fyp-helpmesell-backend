@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, Product, Price, ProductReview
+from .models import User, Product, Price, ProductReview, LocalSellerDetail
 from rest_framework.validators import UniqueTogetherValidator
 
 
@@ -37,3 +37,10 @@ class PriceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Price
         fields = '__all__'
+
+class LocalSellerDetailSerializer(serializers.ModelSerializer):
+    local_seller = UserSerializer(many=True)
+    class Meta:
+        model = LocalSellerDetail
+        fields = ['local_seller','shop_name','shop_address']
+

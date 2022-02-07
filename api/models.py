@@ -121,7 +121,8 @@ class ProductReview(models.Model):
         return str(self.product)
 
 
-class LocalSellerDetail(User):
+class LocalSellerDetail(models.Model):
+    local_seller = models.ForeignKey(User,on_delete=models.CASCADE)
     shop_name = models.CharField(verbose_name="Shop Name", max_length=100)
     shop_address = models.CharField(verbose_name="Shop Address", max_length=1000)
 

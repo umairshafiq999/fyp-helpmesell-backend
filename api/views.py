@@ -1,7 +1,7 @@
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from .models import User, Product, Price, ProductReview
-from .serializers import UserSerializer, ProductSerializer, PriceSerializer, ProductReviewSerializer
+from .models import User, Product, Price, ProductReview,LocalSellerDetail
+from .serializers import UserSerializer, ProductSerializer, PriceSerializer, ProductReviewSerializer,LocalSellerDetailSerializer
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.response import Response
 from rest_framework import status
@@ -117,6 +117,20 @@ class PriceAPIView(APIView):
                     product_price=row.value(['product_price'])
                 )
         serializer = PriceSerializer(data=request.data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status.HTTP_201_CREATED)
+        return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+
+class LocalSellerDetailAPIView(APIView):
+    def get(self, request):
+        localSellerDetail = LocalSellerDetailSerializer.objects.all()
+        serializer = LocalSellerDetailSerializer(localSellerDetail, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = LocalSellerDetailSerializer(data=request.data)
 
         if serializer.is_valid():
             serializer.save()
