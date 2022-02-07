@@ -26,7 +26,7 @@ class UserAPIView(APIView):
         user = UserSerializer(data=request.data)
 
         if user.is_valid():
-            user.save(password=make_password(request.data["password"]))
+            user.save(password=make_password(request.data["password"]),confirm_password=make_password(request.data["confirm_password"]))
             return Response(user.data, status.HTTP_201_CREATED)
         return Response(user.errors, status.HTTP_400_BAD_REQUEST)
 

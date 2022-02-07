@@ -7,13 +7,14 @@ from rest_framework.validators import UniqueTogetherValidator
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'first_name', 'last_name', 'username', 'password', 'dob', 'email', 'contact_no']
+        fields = ['id', 'first_name', 'last_name', 'username', 'password', 'dob', 'email', 'contact_no','state','confirm_password']
 
         validators = [
             UniqueTogetherValidator(
                 queryset=User.objects.all(),
                 fields=['username']
             )
+
 
         ]
 

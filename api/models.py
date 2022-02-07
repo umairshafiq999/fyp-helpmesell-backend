@@ -1,11 +1,12 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+from .constants import USER_STATE_CHOICES
 
 
 # Create your models here.
 
 class UserManager(BaseUserManager):
-    def create_user(self, username, first_name, last_name, dob, email, contact_no, password=None):
+    def create_user(self, username, first_name, last_name, dob, email, contact_no, state,confirm_password, password=None):
         if not username:
             raise ValueError('User must have an username')
         if not first_name:
@@ -18,6 +19,10 @@ class UserManager(BaseUserManager):
             raise ValueError('User must have an Email')
         if not contact_no:
             raise ValueError('User must have an Contact No')
+        if not state:
+            raise ValueError('User must have an state')
+        if not confirm_password:
+            raise ValueError('User must have an confirm_password')
 
         user = self.model(
             username=username,
@@ -27,6 +32,8 @@ class UserManager(BaseUserManager):
             dob=dob,
             email=self.normalize_email(email),
             contact_no=contact_no,
+            state=state,
+            confirm_password=confirm_password
         )
 
         user.save(using=self._db)
@@ -57,6 +64,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     dob = models.DateField(verbose_name="Date Of Birth")
     email = models.CharField(max_length=50)
     contact_no = models.IntegerField(verbose_name="Contact No")
+    state = models.SmallIntegerField(verbose_name='User State', choices=USER_STATE_CHOICES, default=1)
+    confirm_password = models.CharField(verbose_name="Confirm Password",max_length=20,default=False)
     date_joined = models.DateTimeField(verbose_name="Date Registered", auto_now_add=True)
     last_login = models.DateTimeField(verbose_name="Last Login", auto_now_add=True)
     is_active = models.BooleanField(default=True)
@@ -65,7 +74,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_superuser = models.BooleanField(default=False)
 
     USERNAME_FIELD = 'username'
-    REQUIRED_FIELDS = ['password', 'first_name', 'last_name', 'dob', 'email', 'contact_no']
+    REQUIRED_FIELDS = ['password', 'first_name', 'last_name', 'dob', 'email', 'contact_no', 'state','confirm_password']
 
     objects = UserManager()
 
@@ -84,7 +93,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 
 class Product(models.Model):
-    product_name = models.CharField(verbose_name="Product Name",max_length=100)
+    product_name = models.CharField(verbose_name="Product Name", max_length=100)
     product_description = models.CharField(verbose_name="Product Description", max_length=1000)
     product_image = models.CharField(verbose_name="Product Image", max_length=1500)
 
@@ -93,13 +102,12 @@ class Product(models.Model):
 
 
 class Price(models.Model):
-    product = models.ForeignKey(Product, null=False,on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, null=False, on_delete=models.CASCADE)
     reference_site = models.CharField(verbose_name="Reference Site", max_length=1000)
     product_price = models.IntegerField(verbose_name="Product Price")
     min_price = models.IntegerField(verbose_name="Minimum Price")
     max_price = models.IntegerField(verbose_name="Maximum Price")
     offered_by = models.IntegerField(verbose_name="Offered By", default=False)
-    product_file = models.FileField(verbose_name="Upload CSV File", default=False,upload_to='LocalSellerData/')
 
     def __str__(self):
         return str(self.product)
@@ -111,3 +119,11 @@ class ProductReview(models.Model):
 
     def __str__(self):
         return str(self.product)
+
+
+class LocalSellerDetail(User):
+    shop_name = models.CharField(verbose_name="Shop Name", max_length=100)
+    shop_address = models.CharField(verbose_name="Shop Address", max_length=1000)
+
+    def __str__(self):
+        return self.shop_name
