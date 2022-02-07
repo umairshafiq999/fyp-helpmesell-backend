@@ -1,5 +1,5 @@
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models import User, Product, Price, ProductReview
 from .serializers import UserSerializer, ProductSerializer, PriceSerializer, ProductReviewSerializer
 from django.views.decorators.csrf import csrf_exempt
@@ -15,7 +15,7 @@ import xlrd
 # Create your views here.
 class UserAPIView(APIView):
     authentication_classes = [SessionAuthentication, BasicAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def get(self, request):
         users = User.objects.all()
@@ -80,7 +80,6 @@ class ProductReviewAPIView(APIView):
         serializer = ProductSerializer(productreviews, many=True)
         return Response(serializer.data)
 
-
     def post(self, request):
         serializer = ProductReviewSerializer(data=request.data)
 
@@ -104,11 +103,12 @@ class PriceAPIView(APIView):
 
         for row in fileSheet.rows:
             try:
-                Product.objects.get(product_name=row.value['product_name'])
+                product = Product.objects.get(product_name=row.value['product_name'])
                 Price.objects.create(
-                    product_price=row['product_price']
+                    product_price=row['product_price'],
+                    product_id=product.id
                 )
-            except Product.objects.get(product_name=row.value['product_name']).DoesNotExist:
+            except Product.DoesNotExist:
                 Product.objects.create(
                     product_name=row.value(['product_name'])
 
