@@ -28,7 +28,6 @@ class ProductReviewSerializer(serializers.ModelSerializer):
         model = ProductReview
         fields = '__all__'
 class ProductSerializer(serializers.ModelSerializer):
-    product_name = ProductReviewSerializer(many=True)
     class Meta:
         model = Product
         fields = ['id','product_name','product_description','product_image']

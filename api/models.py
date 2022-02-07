@@ -106,7 +106,7 @@ class Price(models.Model):
 
 
 class ProductReview(models.Model):
-    product = models.ForeignKey(Product, on_delete=models.CASCADE,to_field='id',related_name='product')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
     product_reviews = models.CharField(verbose_name="Product Reviews", max_length=1000)
 
     def __str__(self):
