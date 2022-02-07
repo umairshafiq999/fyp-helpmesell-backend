@@ -74,10 +74,12 @@ class ProductDetailAPIView(APIView):
 
 
 class ProductReviewAPIView(APIView):
+
     def get(self, request):
         productreviews = ProductReview.objects.all()
         serializer = ProductSerializer(productreviews, many=True)
         return Response(serializer.data)
+
 
     def post(self, request):
         serializer = ProductReviewSerializer(data=request.data)

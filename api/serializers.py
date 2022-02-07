@@ -23,20 +23,15 @@ class UserLoginSerializer(serializers.ModelSerializer):
         model = User
         fields = ['username', 'password']
 
-
-
-
-
-class ProductSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Product
-        fields = '__all__'
 class ProductReviewSerializer(serializers.ModelSerializer):
-    product_name = ProductSerializer(many=True)
     class Meta:
         model = ProductReview
         fields = '__all__'
+class ProductSerializer(serializers.ModelSerializer):
+    product_name = ProductReviewSerializer(many=True)
+    class Meta:
+        model = Product
+        fields = ['id','product_name','product_description','product_image']
 
 class PriceSerializer(serializers.ModelSerializer):
     class Meta:
