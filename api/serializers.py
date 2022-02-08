@@ -7,14 +7,14 @@ from rest_framework.validators import UniqueTogetherValidator
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'first_name', 'last_name', 'username', 'password', 'dob', 'email', 'contact_no','state','confirm_password']
+        fields = ['id', 'first_name', 'last_name', 'username', 'password', 'dob', 'email', 'contact_no', 'state',
+                  'confirm_password']
 
         validators = [
             UniqueTogetherValidator(
                 queryset=User.objects.all(),
                 fields=['username']
             )
-
 
         ]
 
@@ -24,23 +24,31 @@ class UserLoginSerializer(serializers.ModelSerializer):
         model = User
         fields = ['username', 'password']
 
+
 class ProductReviewSerializer(serializers.ModelSerializer):
+    product = serializers.StringRelatedField()
     class Meta:
         model = ProductReview
         fields = '__all__'
+
+
 class ProductSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Product
-        fields = ['id','product_name','product_description','product_image']
+        fields = ['id', 'product_name', 'product_description', 'product_image']
+
 
 class PriceSerializer(serializers.ModelSerializer):
+    product = serializers.StringRelatedField()
     class Meta:
         model = Price
         fields = '__all__'
 
+
 class LocalSellerDetailSerializer(serializers.ModelSerializer):
-    local_seller = UserSerializer(many=True)
+    local_seller = serializers.StringRelatedField()
+
     class Meta:
         model = LocalSellerDetail
-        fields = ['local_seller','shop_name','shop_address']
-
+        fields = '__all__'

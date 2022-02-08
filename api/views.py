@@ -1,7 +1,8 @@
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from .models import User, Product, Price, ProductReview,LocalSellerDetail
-from .serializers import UserSerializer, ProductSerializer, PriceSerializer, ProductReviewSerializer,LocalSellerDetailSerializer
+from .models import User, Product, Price, ProductReview, LocalSellerDetail
+from .serializers import UserSerializer, ProductSerializer, PriceSerializer, ProductReviewSerializer, \
+    LocalSellerDetailSerializer
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.response import Response
 from rest_framework import status
@@ -26,7 +27,8 @@ class UserAPIView(APIView):
         user = UserSerializer(data=request.data)
 
         if user.is_valid():
-            user.save(password=make_password(request.data["password"]),confirm_password=make_password(request.data["confirm_password"]))
+            user.save(password=make_password(request.data["password"]),
+                      confirm_password=make_password(request.data["confirm_password"]))
             return Response(user.data, status.HTTP_201_CREATED)
         return Response(user.errors, status.HTTP_400_BAD_REQUEST)
 
@@ -123,15 +125,16 @@ class PriceAPIView(APIView):
             return Response(serializer.data, status.HTTP_201_CREATED)
         return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
+
 class LocalSellerDetailAPIView(APIView):
     def get(self, request):
-        localSellerDetail = LocalSellerDetailSerializer.objects.all()
-        serializer = LocalSellerDetailSerializer(localSellerDetail, many=True)
+        local_seller_detail = LocalSellerDetail.objects.filter(local_seller__state=2).values_list('local_seller__first_name')
+
+        serializer = LocalSellerDetailSerializer(local_seller_detail, many=True)
         return Response(serializer.data)
 
     def post(self, request):
         serializer = LocalSellerDetailSerializer(data=request.data)
-
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status.HTTP_201_CREATED)

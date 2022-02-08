@@ -102,7 +102,7 @@ class Product(models.Model):
 
 
 class Price(models.Model):
-    product = models.ForeignKey(Product, null=False, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
     reference_site = models.CharField(verbose_name="Reference Site", max_length=1000)
     product_price = models.IntegerField(verbose_name="Product Price")
     min_price = models.IntegerField(verbose_name="Minimum Price")
@@ -122,9 +122,14 @@ class ProductReview(models.Model):
 
 
 class LocalSellerDetail(models.Model):
+    id = models.AutoField(primary_key=True)
     local_seller = models.ForeignKey(User,on_delete=models.CASCADE)
     shop_name = models.CharField(verbose_name="Shop Name", max_length=100)
     shop_address = models.CharField(verbose_name="Shop Address", max_length=1000)
 
     def __str__(self):
         return self.shop_name
+
+class LocalSellerUploadedData(models.Model):
+    ls_product_file = models.FileField(verbose_name="Upload CSV File", default=False, upload_to='LocalSellerData/')
+
