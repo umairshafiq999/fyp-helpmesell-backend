@@ -1,8 +1,7 @@
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from .models import User, Product, Price, ProductReview, LocalSellerDetail
-from .serializers import UserSerializer, ProductSerializer, PriceSerializer, ProductReviewSerializer, \
-    LocalSellerDetailSerializer
+from .models import User, Product, Price, ProductReview, LocalSellerDetail,LocalSellerUploadedData
+from .serializers import UserSerializer, ProductSerializer, PriceSerializer, ProductReviewSerializer, LocalSellerUploadedDataSerializer,LocalSellerDetailSerializer
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.response import Response
 from rest_framework import status
@@ -74,12 +73,22 @@ class ProductDetailAPIView(APIView):
         serializer = ProductSerializer(products)
         return Response(serializer.data)
 
+class ProductSearchThroughNameAPIView(APIView):
+    def get_object(self, product_name):
+        try:
+            return Product.objects.get(product_name=product_name)
+        except Product.DoesNotExist:
+            return Response(status.HTTP_400_BAD_REQUEST)
+
+    def get(self, request, product_name):
+        products = self.get_object(product_name)
+        serializer = ProductSerializer(products)
+        return Response(serializer.data)
 
 class ProductReviewAPIView(APIView):
-
     def get(self, request):
         productreviews = ProductReview.objects.all()
-        serializer = ProductSerializer(productreviews, many=True)
+        serializer = ProductReviewSerializer(productreviews, many=True)
         return Response(serializer.data)
 
     def post(self, request):
@@ -94,7 +103,7 @@ class ProductReviewAPIView(APIView):
 class PriceAPIView(APIView):
     def get(self, request):
         ProductPrice = Price.objects.all()
-        serializer = ProductSerializer(ProductPrice, many=True)
+        serializer = PriceSerializer(ProductPrice, many=True)
         return Response(serializer.data)
 
     def post(self, request):
@@ -128,13 +137,27 @@ class PriceAPIView(APIView):
 
 class LocalSellerDetailAPIView(APIView):
     def get(self, request):
-        local_seller_detail = LocalSellerDetail.objects.filter(local_seller__state=2).values_list('local_seller__first_name')
-
-        serializer = LocalSellerDetailSerializer(local_seller_detail, many=True)
-        return Response(serializer.data)
+        local_seller_detail = list(
+            LocalSellerDetail.objects.filter(local_seller__state=2).values_list('local_seller__first_name','shop_name','shop_address'))
+        # serializer = LocalSellerDetailSerializer(local_seller_detail, many=True)
+        return Response(local_seller_detail)
 
     def post(self, request):
         serializer = LocalSellerDetailSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status.HTTP_201_CREATED)
+        return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+
+class LocalSellerUploadedDataAPIView(APIView):
+    def get(self, request):
+        uploaded_data = LocalSellerUploadedData.objects.all()
+        serializer = LocalSellerUploadedDataSerializer(uploaded_data, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = LocalSellerUploadedDataSerializer(data=request.data)
+
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status.HTTP_201_CREATED)

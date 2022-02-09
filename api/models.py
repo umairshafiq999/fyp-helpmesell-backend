@@ -1,12 +1,13 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
-from .constants import USER_STATE_CHOICES
+from .constants import USER_STATE_CHOICES, FILE_STATE_CHOICES
 
 
 # Create your models here.
 
 class UserManager(BaseUserManager):
-    def create_user(self, username, first_name, last_name, dob, email, contact_no, state,confirm_password, password=None):
+    def create_user(self, username, first_name, last_name, dob, email, contact_no, state, confirm_password,
+                    password=None):
         if not username:
             raise ValueError('User must have an username')
         if not first_name:
@@ -65,7 +66,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     email = models.CharField(max_length=50)
     contact_no = models.IntegerField(verbose_name="Contact No")
     state = models.SmallIntegerField(verbose_name='User State', choices=USER_STATE_CHOICES, default=1)
-    confirm_password = models.CharField(verbose_name="Confirm Password",max_length=20,default=False)
+    confirm_password = models.CharField(verbose_name="Confirm Password", max_length=20, default=False)
     date_joined = models.DateTimeField(verbose_name="Date Registered", auto_now_add=True)
     last_login = models.DateTimeField(verbose_name="Last Login", auto_now_add=True)
     is_active = models.BooleanField(default=True)
@@ -74,7 +75,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_superuser = models.BooleanField(default=False)
 
     USERNAME_FIELD = 'username'
-    REQUIRED_FIELDS = ['password', 'first_name', 'last_name', 'dob', 'email', 'contact_no', 'state','confirm_password']
+    REQUIRED_FIELDS = ['password', 'first_name', 'last_name', 'dob', 'email', 'contact_no', 'state', 'confirm_password']
 
     objects = UserManager()
 
@@ -117,19 +118,25 @@ class ProductReview(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     product_reviews = models.CharField(verbose_name="Product Reviews", max_length=1000)
 
+
     def __str__(self):
-        return str(self.product)
+        return self.product_reviews
 
 
 class LocalSellerDetail(models.Model):
     id = models.AutoField(primary_key=True)
-    local_seller = models.ForeignKey(User,on_delete=models.CASCADE)
+    local_seller = models.ForeignKey(User, on_delete=models.CASCADE)
     shop_name = models.CharField(verbose_name="Shop Name", max_length=100)
     shop_address = models.CharField(verbose_name="Shop Address", max_length=1000)
 
     def __str__(self):
         return self.shop_name
 
+
 class LocalSellerUploadedData(models.Model):
+    user_id = models.ForeignKey(User, on_delete=models.CASCADE)
+    file_state = models.SmallIntegerField(verbose_name='File State', choices=FILE_STATE_CHOICES, default=1)
     ls_product_file = models.FileField(verbose_name="Upload CSV File", default=False, upload_to='LocalSellerData/')
 
+    def __str__(self):
+        return self.user_id, self.file_state
