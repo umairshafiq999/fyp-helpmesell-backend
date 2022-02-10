@@ -48,7 +48,7 @@ class LocalSellerSignUpAPIView(APIView):
 
         if user.is_valid():
             local_seller = user.save(password=make_password(request.data["password"]),
-                                     confirm_password=make_password(request.data["confirm_password"]))
+                                     confirm_password=make_password(request.data["confirm_password"]),state=2)
             LocalSellerDetail.objects.create(
                 local_seller=local_seller,
                 shop_name= request.data["shop_name"],
