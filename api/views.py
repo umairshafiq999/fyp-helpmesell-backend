@@ -1,7 +1,8 @@
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from .models import User, Product, Price, ProductReview, LocalSellerDetail,LocalSellerUploadedData
-from .serializers import UserSerializer, ProductSerializer, PriceSerializer, ProductReviewSerializer, LocalSellerUploadedDataSerializer,LocalSellerDetailSerializer
+from .models import User, Product, Price, ProductReview, LocalSellerDetail, LocalSellerUploadedData
+from .serializers import UserSerializer, ProductSerializer, PriceSerializer, ProductReviewSerializer, \
+    LocalSellerUploadedDataSerializer, LocalSellerDetailSerializer
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.response import Response
 from rest_framework import status
@@ -9,7 +10,8 @@ from rest_framework.views import APIView
 from django.contrib.auth.hashers import make_password
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
-import xlrd
+from .task import *
+
 
 
 # Create your views here.
@@ -28,6 +30,30 @@ class UserAPIView(APIView):
         if user.is_valid():
             user.save(password=make_password(request.data["password"]),
                       confirm_password=make_password(request.data["confirm_password"]))
+            return Response(user.data, status.HTTP_201_CREATED)
+        return Response(user.errors, status.HTTP_400_BAD_REQUEST)
+
+
+class LocalSellerSignUpAPIView(APIView):
+    authentication_classes = [SessionAuthentication, BasicAuthentication]
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        users = User.objects.all()
+        serializer = UserSerializer(users, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        user = UserSerializer(data=request.data)
+        if user.is_valid():
+            local_seller = user.save(password=make_password(request.data["password"]),
+                                     confirm_password=make_password(request.data["confirm_password"]))
+            LocalSellerDetail.objects.create(
+                local_seller=local_seller,
+                shop_name=LocalSellerDetail.shop_name,
+                shop_address=LocalSellerDetail.shop_address
+            )
+
             return Response(user.data, status.HTTP_201_CREATED)
         return Response(user.errors, status.HTTP_400_BAD_REQUEST)
 
@@ -73,6 +99,7 @@ class ProductDetailAPIView(APIView):
         serializer = ProductSerializer(products)
         return Response(serializer.data)
 
+
 class ProductSearchThroughNameAPIView(APIView):
     def get_object(self, product_name):
         try:
@@ -84,6 +111,7 @@ class ProductSearchThroughNameAPIView(APIView):
         products = self.get_object(product_name)
         serializer = ProductSerializer(products)
         return Response(serializer.data)
+
 
 class ProductReviewAPIView(APIView):
     def get(self, request):
@@ -107,26 +135,6 @@ class PriceAPIView(APIView):
         return Response(serializer.data)
 
     def post(self, request):
-        file = request.FILES.get('product_file')
-        fileRead = xlrd.open_workbook(file)
-
-        fileSheet = fileRead.sheet_by_index(0)
-
-        for row in fileSheet.rows:
-            try:
-                product = Product.objects.get(product_name=row.value['product_name'])
-                Price.objects.create(
-                    product_price=row['product_price'],
-                    product_id=product.id
-                )
-            except Product.DoesNotExist:
-                Product.objects.create(
-                    product_name=row.value(['product_name'])
-
-                )
-                Price.objects.create(
-                    product_price=row.value(['product_price'])
-                )
         serializer = PriceSerializer(data=request.data)
 
         if serializer.is_valid():
@@ -138,7 +146,8 @@ class PriceAPIView(APIView):
 class LocalSellerDetailAPIView(APIView):
     def get(self, request):
         local_seller_detail = list(
-            LocalSellerDetail.objects.filter(local_seller__state=2).values_list('local_seller__first_name','shop_name','shop_address'))
+            LocalSellerDetail.objects.filter(local_seller__state=2).values_list('local_seller__first_name', 'shop_name',
+                                                                                'shop_address'))
         # serializer = LocalSellerDetailSerializer(local_seller_detail, many=True)
         return Response(local_seller_detail)
 
@@ -149,6 +158,7 @@ class LocalSellerDetailAPIView(APIView):
             return Response(serializer.data, status.HTTP_201_CREATED)
         return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
+
 class LocalSellerUploadedDataAPIView(APIView):
     def get(self, request):
         uploaded_data = LocalSellerUploadedData.objects.all()
@@ -156,6 +166,7 @@ class LocalSellerUploadedDataAPIView(APIView):
         return Response(serializer.data)
 
     def post(self, request):
+        LocalSellerFileUpload.delay()
         serializer = LocalSellerUploadedDataSerializer(data=request.data)
 
         if serializer.is_valid():

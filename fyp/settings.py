@@ -28,7 +28,7 @@ SECRET_KEY = 'django-insecure-%+!^xf6st9!-#36n3n&i1ls!h0e&&7^zb&b2e*q74xmmwxy6k*
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['*','127.0.0.1','localhost:3000']
 DISABLE_COLLECTSTATIC=1
 AUTH_USER_MODEL = 'api.User'
 
@@ -135,7 +135,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
 
 
-STATIC_URL = '/LocalSellerData/'
+STATICFILES_DIR = {
+    os.path.join(BASE_DIR, "LocalSellerData")
+}
 
 MEDIA_URL = '/images/'
 
@@ -149,3 +151,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ORIGIN_WHITELIST = [
      'http://localhost:3000'
 ]
+
+CELERY_BROKER_URL = 'redis://127.0.0.1:6379'
+CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379'
+CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TASK_SERIALIZER = 'json'

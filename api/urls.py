@@ -1,5 +1,6 @@
 from .views import UserAPIView,UserLoginAPIView,ProductAPIView,PriceAPIView,ProductReviewAPIView
 from .views import ProductDetailAPIView,LocalSellerDetailAPIView,ProductSearchThroughNameAPIView,LocalSellerUploadedDataAPIView
+from .views import LocalSellerSignUpAPIView
 from django.urls import path,include
 from rest_framework.authtoken.views import obtain_auth_token
 from django.conf.urls.static import static
@@ -7,6 +8,7 @@ from django.conf import settings
 
 urlpatterns = [
     path('users/',UserAPIView.as_view()),
+    path('localSellerSignUp/',LocalSellerSignUpAPIView.as_view()),
     path('userslogin/',UserLoginAPIView.as_view()),
     path('api-token-auth/', obtain_auth_token),
     path('product/',ProductAPIView.as_view()),
