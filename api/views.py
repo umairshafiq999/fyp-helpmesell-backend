@@ -45,13 +45,14 @@ class LocalSellerSignUpAPIView(APIView):
 
     def post(self, request):
         user = UserSerializer(data=request.data)
+
         if user.is_valid():
             local_seller = user.save(password=make_password(request.data["password"]),
                                      confirm_password=make_password(request.data["confirm_password"]))
             LocalSellerDetail.objects.create(
                 local_seller=local_seller,
-                shop_name=LocalSellerDetail.shop_name,
-                shop_address=LocalSellerDetail.shop_address
+                shop_name= request.data["shop_name"],
+                shop_address=request.data["shop_address"]
             )
 
             return Response(user.data, status.HTTP_201_CREATED)
