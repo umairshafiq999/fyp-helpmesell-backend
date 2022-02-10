@@ -5,7 +5,7 @@ import xlrd
 
 @shared_task
 def LocalSellerFileUpload(request):
-    file = request.FILES.get('product_file')
+    file = request.FILES['ls_product_file']
     fileRead = xlrd.open_workbook(file)
 
     fileSheet = fileRead.sheet_by_index(0)
@@ -14,8 +14,7 @@ def LocalSellerFileUpload(request):
         try:
             product = Product.objects.get(product_name=row.value['product_name'])
             Price.objects.create(
-                product_price=row['product_price'],
-                product_id=product.id
+                product_price=row.value['product_price'],
             )
         except Product.DoesNotExist:
             Product.objects.create(
@@ -26,3 +25,4 @@ def LocalSellerFileUpload(request):
                 product_price=row.value(['product_price'])
             )
             return None
+
