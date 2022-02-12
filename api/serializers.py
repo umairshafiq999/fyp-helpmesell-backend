@@ -39,8 +39,6 @@ class ProductSerializer(serializers.ModelSerializer):
 
 
 class PriceSerializer(serializers.ModelSerializer):
-    product = serializers.StringRelatedField()
-
     class Meta:
         model = Price
         fields = '__all__'

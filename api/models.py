@@ -131,7 +131,7 @@ class LocalSellerDetail(models.Model):
 
 
 class LocalSellerUploadedData(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE,null=True,blank=True)
     file_state = models.SmallIntegerField(verbose_name='File State', choices=FILE_STATE_CHOICES, default=1)
     ls_product_file = models.FileField(verbose_name="Upload CSV File", default=False, upload_to='media/LocalSellerData/')
     created = models.DateTimeField(verbose_name='Creation date',auto_now_add=True,editable=False)

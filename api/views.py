@@ -13,6 +13,7 @@ from rest_framework.authtoken.models import Token
 from .task import *
 import pandas
 
+
 # Create your views here.
 class UserAPIView(APIView):
     authentication_classes = [SessionAuthentication, BasicAuthentication]
@@ -120,9 +121,11 @@ class ProductReviewAPIView(APIView):
 
     def post(self, request):
         serializer = ProductReviewSerializer(data=request.data)
-
         if serializer.is_valid():
-            serializer.save()
+            ProductReview.objects.create(
+                product_id=request.data['product'],
+                product_reviews=request.data['product_reviews']
+            )
             return Response(serializer.data, status.HTTP_201_CREATED)
         return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
@@ -137,7 +140,12 @@ class PriceAPIView(APIView):
         serializer = PriceSerializer(data=request.data)
 
         if serializer.is_valid():
-            serializer.save()
+            Price.objects.create(
+                product_id=request.data['product'],
+                reference_site=request.data['reference_site'],
+                product_price=request.data['product_price']
+
+            )
             return Response(serializer.data, status.HTTP_201_CREATED)
         return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
@@ -154,6 +162,11 @@ class LocalSellerDetailAPIView(APIView):
         serializer = LocalSellerDetailSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
+            # LocalSellerDetail.objects.create(
+            #     local_seller_id=request.data['local_seller'],
+            #     shop_name=request.data['shop_name'],
+            #     shop_address=request.data['shop_address']
+            # )
             return Response(serializer.data, status.HTTP_201_CREATED)
         return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
@@ -168,11 +181,13 @@ class LocalSellerUploadedDataAPIView(APIView):
         serializer = LocalSellerUploadedDataSerializer(data=request.data)
 
         if serializer.is_valid():
-            serializer.save()
+            data = serializer.save()
+            data.user_id = request.data['user']
+            data.save()
+
             file = request.data['ls_product_file']
 
-            fileSheet = pandas.read_excel(file, sheet_name=0,index_col=0, header=0)
-
+            fileSheet = pandas.read_excel(file, sheet_name=0, index_col=0, header=0)
 
             for row in fileSheet.iterrows():
                 try:
