@@ -11,7 +11,7 @@ from django.contrib.auth.hashers import make_password
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from .task import *
-
+import pandas
 
 # Create your views here.
 class UserAPIView(APIView):
@@ -27,8 +27,7 @@ class UserAPIView(APIView):
         user = UserSerializer(data=request.data)
 
         if user.is_valid():
-            user.save(password=make_password(request.data["password"]),
-                      confirm_password=make_password(request.data["confirm_password"]))
+            user.save(password=make_password(request.data["password"]))
             return Response(user.data, status.HTTP_201_CREATED)
         return Response(user.errors, status.HTTP_400_BAD_REQUEST)
 
@@ -170,10 +169,9 @@ class LocalSellerUploadedDataAPIView(APIView):
 
         if serializer.is_valid():
             serializer.save()
-            file = request.FILES['ls_product_file']
-            fileRead = xlrd.open_workbook(file)
+            file = request.data['ls_product_file']
 
-            fileSheet = fileRead.sheet_by_index(0)
+            fileSheet = pandas.read_excel(file, sheet_name=0)
 
             for row in fileSheet.rows:
                 try:
