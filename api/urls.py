@@ -11,13 +11,13 @@ urlpatterns = [
     path('localSellerSignUp/',LocalSellerSignUpAPIView.as_view()),
     path('userslogin/',UserLoginAPIView.as_view()),
     path('api-token-auth/', obtain_auth_token),
-    path('product/',ProductAPIView.as_view()),
-    path('product/<int:id>/',ProductDetailAPIView.as_view()),
-    path('product/<str:product_name>/',ProductSearchThroughNameAPIView.as_view()),
-    path('reviews/',ProductReviewAPIView.as_view()),
-    path('price/',PriceAPIView.as_view()),
-    path('localsellerdetail/',LocalSellerDetailAPIView.as_view()),
-    path('LSUploadedData/',LocalSellerUploadedDataAPIView.as_view()),
+    path('api/products/',ProductAPIView.as_view()),
+    path('api/product/<int:id>/',ProductDetailAPIView.as_view()),
+    path('api/product/<str:product_name>/',ProductSearchThroughNameAPIView.as_view()),
+    path('api/reviews/',ProductReviewAPIView.as_view()),
+    path('api/price/',PriceAPIView.as_view()),
+    path('api/localsellerdetail/',LocalSellerDetailAPIView.as_view()),
+    path('api/LSUploadedData/',LocalSellerUploadedDataAPIView.as_view()),
 ]
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

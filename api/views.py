@@ -165,9 +165,6 @@ class LocalSellerUploadedDataAPIView(APIView):
         serializer = LocalSellerUploadedDataSerializer(uploaded_data, many=True)
         return Response(serializer.data)
 
-    import pdb;
-    pdb.set_trace()
-
     def post(self, request):
         serializer = LocalSellerUploadedDataSerializer(data=request.data)
 

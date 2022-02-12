@@ -7,8 +7,7 @@ from rest_framework.validators import UniqueTogetherValidator
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'first_name', 'last_name', 'username', 'password', 'dob', 'email', 'contact_no', 'state',
-                  'confirm_password']
+        fields = ['id', 'first_name', 'last_name', 'username', 'password', 'dob', 'email', 'contact_no', 'state']
 
         validators = [
             UniqueTogetherValidator(
@@ -36,7 +35,7 @@ class ProductReviewSerializer(serializers.ModelSerializer):
 class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
-        fields = ['id', 'product_name', 'product_description', 'product_image']
+        fields = '__all__'
 
 
 class PriceSerializer(serializers.ModelSerializer):
