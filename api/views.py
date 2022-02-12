@@ -195,7 +195,7 @@ class LocalSellerUploadedDataAPIView(APIView):
                     Price.objects.create(
                         product=product,
                         reference_site="shophive.com",
-                        product_price=row.value['product_price'],
+                        product_price=row[1],
                         min_price=20000,
                         max_price=30000,
                         offered_by=3
@@ -203,18 +203,19 @@ class LocalSellerUploadedDataAPIView(APIView):
                 except Product.DoesNotExist:
                     product = Product.objects.get(product_name=row[0])
                     Product.objects.create(
-                        product_name=row.value(['product_name']),
+                        product_name=row[0],
                         product_description='Great Phone',
                         product_image="https://www.apple.com/newsroom/images/product/iphone/standard/Apple_announce-iphone12pro_10132020.jpg.landing-big_2x.jpg",
-
-                    )
-                    Price.objects.create(
-                        product=product,
-                        reference_site="shophive.com",
-                        product_price=row.value(['product_price']),
                         min_price=20000,
                         max_price=30000,
                         offered_by=3
+
+                    )
+                    Price.objects.create(
+                        product_id=product,
+                        reference_site="shophive.com",
+                        product_price=row.value(['product_price']),
+
                     )
 
             return Response(serializer.data, status.HTTP_201_CREATED)
