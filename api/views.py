@@ -13,7 +13,6 @@ from rest_framework.authtoken.models import Token
 from .task import *
 
 
-
 # Create your views here.
 class UserAPIView(APIView):
     authentication_classes = [SessionAuthentication, BasicAuthentication]
@@ -48,10 +47,10 @@ class LocalSellerSignUpAPIView(APIView):
 
         if user.is_valid():
             local_seller = user.save(password=make_password(request.data["password"]),
-                                     confirm_password=make_password(request.data["confirm_password"]),state=2)
+                                     confirm_password=make_password(request.data["confirm_password"]), state=2)
             LocalSellerDetail.objects.create(
                 local_seller=local_seller,
-                shop_name= request.data["shop_name"],
+                shop_name=request.data["shop_name"],
                 shop_address=request.data["shop_address"]
             )
 
@@ -166,11 +165,46 @@ class LocalSellerUploadedDataAPIView(APIView):
         serializer = LocalSellerUploadedDataSerializer(uploaded_data, many=True)
         return Response(serializer.data)
 
+    import pdb;
+    pdb.set_trace()
+
     def post(self, request):
-        LocalSellerFileUpload.delay()
         serializer = LocalSellerUploadedDataSerializer(data=request.data)
 
         if serializer.is_valid():
             serializer.save()
+            file = request.FILES['ls_product_file']
+            fileRead = xlrd.open_workbook(file)
+
+            fileSheet = fileRead.sheet_by_index(0)
+
+            for row in fileSheet.rows:
+                try:
+                    product = Product.objects.get(product_name=row.value['product_name'])
+                    Price.objects.create(
+                        product=product,
+                        reference_site="shophive.com",
+                        product_price=row.value['product_price'],
+                        min_price=20000,
+                        max_price=30000,
+                        offered_by=3
+                    )
+                except Product.DoesNotExist:
+                    product = Product.objects.get(product_name=row.value['product_name'])
+                    Product.objects.create(
+                        product_name=row.value(['product_name']),
+                        product_description='Great Phone',
+                        product_image="https://www.apple.com/newsroom/images/product/iphone/standard/Apple_announce-iphone12pro_10132020.jpg.landing-big_2x.jpg",
+
+                    )
+                    Price.objects.create(
+                        product=product,
+                        reference_site="shophive.com",
+                        product_price=row.value(['product_price']),
+                        min_price=20000,
+                        max_price=30000,
+                        offered_by=3
+                    )
+
             return Response(serializer.data, status.HTTP_201_CREATED)
         return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
