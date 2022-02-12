@@ -55,7 +55,7 @@ class LocalSellerDetailSerializer(serializers.ModelSerializer):
 
 
 class LocalSellerUploadedDataSerializer(serializers.ModelSerializer):
-    user_id = serializers.StringRelatedField()
+    user = serializers.StringRelatedField()
 
     class Meta:
         model = LocalSellerUploadedData

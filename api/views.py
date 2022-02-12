@@ -171,11 +171,12 @@ class LocalSellerUploadedDataAPIView(APIView):
             serializer.save()
             file = request.data['ls_product_file']
 
-            fileSheet = pandas.read_excel(file, sheet_name=0)
+            fileSheet = pandas.read_excel(file, sheet_name=0,index_col=0, header=0)
 
-            for row in fileSheet.rows:
+
+            for row in fileSheet.iterrows():
                 try:
-                    product = Product.objects.get(product_name=row.value['product_name'])
+                    product = Product.objects.get(product_name=row[0])
                     Price.objects.create(
                         product=product,
                         reference_site="shophive.com",
@@ -185,7 +186,7 @@ class LocalSellerUploadedDataAPIView(APIView):
                         offered_by=3
                     )
                 except Product.DoesNotExist:
-                    product = Product.objects.get(product_name=row.value['product_name'])
+                    product = Product.objects.get(product_name=row[0])
                     Product.objects.create(
                         product_name=row.value(['product_name']),
                         product_description='Great Phone',
