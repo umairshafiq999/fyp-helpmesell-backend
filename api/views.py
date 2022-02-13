@@ -67,7 +67,8 @@ class UserLoginAPIView(ObtainAuthToken):
         return Response({
             'token': token.key,
             'username': user.username,
-            'first_name': user.first_name
+            'first_name': user.first_name,
+            'state': user.state
         })
 
 
