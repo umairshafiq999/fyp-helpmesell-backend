@@ -11,6 +11,7 @@ from django.contrib.auth.hashers import make_password
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from .task import *
+from django.conf import settings
 import pandas
 
 
@@ -182,41 +183,12 @@ class LocalSellerUploadedDataAPIView(APIView):
 
         if serializer.is_valid():
             data = serializer.save()
+
+
             data.user_id = request.data['user']
             data.save()
-
-            file = request.data['ls_product_file']
-
-            fileSheet = pandas.read_excel(file, sheet_name=0, index_col=0, header=0)
-
-            for row in fileSheet.iterrows():
-                try:
-                    product = Product.objects.get(product_name=row[0])
-                    Price.objects.create(
-                        product=product,
-                        reference_site="shophive.com",
-                        product_price=row[1],
-                        min_price=20000,
-                        max_price=30000,
-                        offered_by=3
-                    )
-                except Product.DoesNotExist:
-                    product = Product.objects.get(product_name=row[0])
-                    Product.objects.create(
-                        product_name=row[0],
-                        product_description='Great Phone',
-                        product_image="https://www.apple.com/newsroom/images/product/iphone/standard/Apple_announce-iphone12pro_10132020.jpg.landing-big_2x.jpg",
-                        min_price=20000,
-                        max_price=30000,
-                        offered_by=3
-
-                    )
-                    Price.objects.create(
-                        product_id=product,
-                        reference_site="shophive.com",
-                        product_price=row.value(['product_price']),
-
-                    )
-
+            file = settings.MEDIA_ROOT + data.ls_product_file.url
+            LocalSellerFileUpload.delay()
+            Hello.delay()
             return Response(serializer.data, status.HTTP_201_CREATED)
         return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
