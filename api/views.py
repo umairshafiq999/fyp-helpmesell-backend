@@ -194,10 +194,7 @@ class LocalSellerUploadedDataAPIView(APIView):
                     Price.objects.create(
                         product=product,
                         reference_site="shophive.com",
-                        product_price=row[1],
-                        min_price=20000,
-                        max_price=30000,
-                        offered_by=3
+                        product_price=row[1]
                     )
                 except Product.DoesNotExist:
                     product = Product.objects.create(
