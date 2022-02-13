@@ -185,7 +185,7 @@ class LocalSellerUploadedDataAPIView(APIView):
             data = serializer.save()
             data.user_id = request.data['user']
             data.save()
-            file = settings.MEDIA_ROOT + data.ls_product_file.url
+            file = settings.MEDIA_ROOT + data.ls_product_file.url[6:]
             fileSheet = pandas.read_excel(file, sheet_name=0, index_col=0, header=0)
 
             for row in fileSheet.iterrows():
