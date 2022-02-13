@@ -209,7 +209,7 @@ class LocalSellerUploadedDataAPIView(APIView):
                     Price.objects.create(
                         product_id=product.id,
                         reference_site="shophive.com",
-                        product_price=row.value(['product_price']),
+                        product_price=row[1]
 
                     )
 
