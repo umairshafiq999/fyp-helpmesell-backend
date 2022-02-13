@@ -53,8 +53,6 @@ class LocalSellerDetailSerializer(serializers.ModelSerializer):
 
 
 class LocalSellerUploadedDataSerializer(serializers.ModelSerializer):
-    user = serializers.StringRelatedField()
-
     class Meta:
         model = LocalSellerUploadedData
         fields = '__all__'
