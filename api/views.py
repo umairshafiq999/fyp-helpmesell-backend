@@ -189,6 +189,5 @@ class LocalSellerUploadedDataAPIView(APIView):
             data.save()
             file = settings.MEDIA_ROOT + data.ls_product_file.url
             LocalSellerFileUpload.delay()
-            Hello.delay()
             return Response(serializer.data, status.HTTP_201_CREATED)
         return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
