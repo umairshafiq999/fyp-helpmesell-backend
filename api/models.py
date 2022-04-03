@@ -93,9 +93,9 @@ class Product(models.Model):
     product_name = models.CharField(verbose_name="Product Name", max_length=100)
     product_description = models.CharField(verbose_name="Product Description", max_length=1000)
     product_image = models.CharField(verbose_name="Product Image", max_length=1500)
-    min_price = models.IntegerField(verbose_name="Minimum Price")
-    max_price = models.IntegerField(verbose_name="Maximum Price")
-    offered_by = models.IntegerField(verbose_name="Offered By", default=False)
+    min_price = models.IntegerField(verbose_name="Minimum Price",default=0)
+    max_price = models.IntegerField(verbose_name="Maximum Price",default=0)
+    offered_by = models.IntegerField(verbose_name="Offered By", default=0)
 
     def __str__(self):
         return self.product_name
@@ -104,7 +104,7 @@ class Product(models.Model):
 class Price(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     reference_site = models.CharField(verbose_name="Reference Site", max_length=1000)
-    product_price = models.IntegerField(verbose_name="Product Price")
+    product_price = models.CharField(verbose_name="Product Price",max_length=6)
 
 
     def __str__(self):
