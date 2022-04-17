@@ -1,8 +1,7 @@
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from .models import User, Product, Price, ProductReview, LocalSellerDetail, LocalSellerUploadedData
-from .serializers import UserSerializer, ProductSerializer, PriceSerializer, ProductReviewSerializer, \
-    LocalSellerUploadedDataSerializer, LocalSellerDetailSerializer
+from .models import *
+from .serializers import *
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.response import Response
 from rest_framework import status
@@ -12,8 +11,7 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from .task import *
 from django.conf import settings
-import pandas
-from rest_framework.pagination import PageNumberPagination
+import stripe
 
 
 # Create your views here.
@@ -91,16 +89,21 @@ class ProductAPIView(APIView):
 
 
 class ProductDetailAPIView(APIView):
-    def get_object(self, id):
+    def get(self, request, id):
         try:
-            return Product.objects.get(id=id)
+            product = Product.objects.filter(pk=id).values()
+            product_prices = Price.objects.filter(product_id=product[0]['id']).values()
+            data = {"product": product[0], "product_prices": product_prices}
+            return Response(
+                {
+                    'success': True,
+                    'detail': 'product with all prices',
+                    'data': data
+                },
+                status=status.HTTP_200_OK
+            )
         except Product.DoesNotExist:
             return Response(status.HTTP_400_BAD_REQUEST)
-
-    def get(self, request, id):
-        products = self.get_object(id)
-        serializer = ProductSerializer(products)
-        return Response(serializer.data)
 
 
 class ProductSearchThroughNameAPIView(APIView):
@@ -195,7 +198,47 @@ class LocalSellerUploadedDataAPIView(APIView):
 
 
 class ShopHiveScraperAPIView(APIView):
-    def post(self,request):
+    def post(self, request):
         ShopHiveScraper.delay(request.data['website'])
 
         return Response("Data has started to Scrape", status.HTTP_201_CREATED)
+
+
+class PakistaniStoresScrapersAPIView(APIView):
+    def post(self, request):
+        if request.data['website'] == 1:
+            PakistaniStoresMobileScraper.delay(request.data['website'])
+            return Response("Data has started to Scrape", status.HTTP_201_CREATED)
+        elif request.data['website'] == 4:
+            PakistaniStoresLaptopScraper.delay(request.data['website'])
+            return Response("Data has started to Scrape", status.HTTP_201_CREATED)
+
+
+stripe.api_key = settings.STRIPE_SECRET_KEY
+
+
+class PackageAPIView(APIView):
+    def get(self, request):
+        packages = Package.objects.all()
+        serializer = PackageSerializer(packages, many=True)
+        return Response(serializer.data)
+
+
+class PaymentAPIView(APIView):
+    def post(self, request):
+        try:
+            checkout_session = stripe.checkout.Session.create(
+                line_items=[
+                    {
+                        'price': request.data['package_price'],
+                        'quantity': 1,
+                    },
+                ],
+                payment_method_types={'card', },
+                mode='payment',
+                success_url=settings.PAYMENT_URL + '/?success=true',
+                cancel_url=settings.PAYMENT_URL + '/?canceled=true',
+            )
+            return Response("Payment Successful", status.HTTP_200_OK)
+        except:
+            return Response("Payment not successful", status.HTTP_500_INTERNAL_SERVER_ERROR)

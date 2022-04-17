@@ -93,8 +93,8 @@ class Product(models.Model):
     product_name = models.CharField(verbose_name="Product Name", max_length=100)
     product_description = models.CharField(verbose_name="Product Description", max_length=1000)
     product_image = models.CharField(verbose_name="Product Image", max_length=1500)
-    min_price = models.IntegerField(verbose_name="Minimum Price",default=0)
-    max_price = models.IntegerField(verbose_name="Maximum Price",default=0)
+    min_price = models.IntegerField(verbose_name="Minimum Price", default=0)
+    max_price = models.IntegerField(verbose_name="Maximum Price", default=0)
     offered_by = models.IntegerField(verbose_name="Offered By", default=0)
 
     def __str__(self):
@@ -104,8 +104,7 @@ class Product(models.Model):
 class Price(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     reference_site = models.CharField(verbose_name="Reference Site", max_length=1000)
-    product_price = models.CharField(verbose_name="Product Price",max_length=6)
-
+    product_price = models.CharField(verbose_name="Product Price", max_length=6)
 
     def __str__(self):
         return str(self.product)
@@ -114,7 +113,6 @@ class Price(models.Model):
 class ProductReview(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     product_reviews = models.CharField(verbose_name="Product Reviews", max_length=1000)
-
 
     def __str__(self):
         return self.product_reviews
@@ -131,12 +129,22 @@ class LocalSellerDetail(models.Model):
 
 
 class LocalSellerUploadedData(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE,null=True,blank=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     file_state = models.SmallIntegerField(verbose_name='File State', choices=FILE_STATE_CHOICES, default=1)
-    ls_product_file = models.FileField(verbose_name="Upload CSV File", default=False, upload_to='media/LocalSellerData/')
-    created = models.DateTimeField(verbose_name='Creation date',auto_now_add=True,editable=False)
+    ls_product_file = models.FileField(verbose_name="Upload CSV File", default=False,
+                                       upload_to='media/LocalSellerData/')
+    created = models.DateTimeField(verbose_name='Creation date', auto_now_add=True, editable=False)
 
     def __str__(self):
         template = '{0.user} {0.file_state}'
         return template.format(self)
 
+
+class Package(models.Model):
+    package_name = models.CharField(verbose_name="Package Name", max_length=10)
+    package_price = models.IntegerField(verbose_name="Package Price")
+    package_duration = models.CharField(verbose_name="Package Duration", max_length=25)
+    package_description = models.CharField(verbose_name="Package Description", max_length=1000)
+
+    def __str__(self):
+        return self.package_name

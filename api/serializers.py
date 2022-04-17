@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, Product, Price, ProductReview, LocalSellerDetail,LocalSellerUploadedData
+from .models import User, Product, Price, ProductReview, LocalSellerDetail, LocalSellerUploadedData, Package
 from rest_framework.validators import UniqueTogetherValidator
 
 
@@ -55,4 +55,10 @@ class LocalSellerDetailSerializer(serializers.ModelSerializer):
 class LocalSellerUploadedDataSerializer(serializers.ModelSerializer):
     class Meta:
         model = LocalSellerUploadedData
+        fields = '__all__'
+
+
+class PackageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Package
         fields = '__all__'

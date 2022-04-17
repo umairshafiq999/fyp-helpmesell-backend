@@ -1,6 +1,4 @@
-from .views import UserAPIView,UserLoginAPIView,ProductAPIView,PriceAPIView,ProductReviewAPIView
-from .views import ProductDetailAPIView,LocalSellerDetailAPIView,ProductSearchThroughNameAPIView,LocalSellerUploadedDataAPIView
-from .views import LocalSellerSignUpAPIView,ShopHiveScraperAPIView
+from .views import *
 from django.urls import path,include
 from rest_framework.authtoken.views import obtain_auth_token
 from django.conf.urls.static import static
@@ -19,6 +17,10 @@ urlpatterns = [
     path('api/localsellerdetail/',LocalSellerDetailAPIView.as_view()),
     path('api/LSUploadedData/',LocalSellerUploadedDataAPIView.as_view()),
     path('api/ShopHiveScraper/',ShopHiveScraperAPIView.as_view()),
+    path('api/PakistaniStoresScraper/', PakistaniStoresScrapersAPIView.as_view()),
+    path('api/Packages/',PackageAPIView.as_view()),
+    path('api/Payment/',PaymentAPIView.as_view()),
+
 
 ]
 

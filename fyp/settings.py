@@ -113,6 +113,7 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 2,
 
 }
+STRIPE_SECRET_KEY = 'sk_test_51Ko90cFVG2XMVBbYFuMWHIak1hqntzIdBsS1rstEJDDbgofYvMeRMPYrrui9OujFmq364sT4DK9PUKWZWWy4qJcv00TbCH1iZ9'
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/
@@ -146,6 +147,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ORIGIN_WHITELIST = [
     'http://localhost:3000'
 ]
+PAYMENT_URL = 'http://localhost:3000'
 
 CELERY_BROKER_URL = 'redis://127.0.0.1:6379'
 CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379'
