@@ -96,7 +96,7 @@ def ShopHiveScraper(url):
                 product = Product.objects.create(
                     product_name=row[0],
                     product_description='Great Phone',
-                    product_image=row[2]['src']
+                    product_image=row[2]['data-src']
 
                 )
                 Price.objects.create(
