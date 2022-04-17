@@ -197,20 +197,16 @@ class LocalSellerUploadedDataAPIView(APIView):
         return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
 
-class ShopHiveScraperAPIView(APIView):
+class ScrapersAPIView(APIView):
     def post(self, request):
-        ShopHiveScraper.delay(request.data['website'])
-
-        return Response("Data has started to Scrape", status.HTTP_201_CREATED)
-
-
-class PakistaniStoresScrapersAPIView(APIView):
-    def post(self, request):
-        if request.data['website'] == 1:
-            PakistaniStoresMobileScraper.delay(request.data['website'])
+        if 'shophive' in request.data['website']:
+            ShopHiveScraper.delay(request.data['website'])
             return Response("Data has started to Scrape", status.HTTP_201_CREATED)
-        elif request.data['website'] == 4:
+        elif 'pakistanistores' in request.data['website'] and 'laptops-and-pc':
             PakistaniStoresLaptopScraper.delay(request.data['website'])
+            return Response("Data has started to Scrape", status.HTTP_201_CREATED)
+        elif 'pakistanistores' in request.data['website']:
+            PakistaniStoresMobileScraper.delay(request.data['website'])
             return Response("Data has started to Scrape", status.HTTP_201_CREATED)
 
 

@@ -8,11 +8,15 @@ import html5lib
 from bs4 import BeautifulSoup
 
 
-def DataCleaning(product):
-    product.product_name.replace('USA','') #Pakistani Stores Mobile Removals
+def DataCleaningOfPakistaniStores(product, price):
+    product.product_name.replace('USA', '')  # Pakistani Stores Mobile Removals
     product.product_name.replace('Without PTA Approved', '')
     product.product_name.replace('(PTA Approved)', '')
+    price.product_price.replace('\n', '')
 
+
+def DataCleaningOfShophive(price):
+    price.product_price.replace('Special Price', '').replace(' ', '')
 
 
 @shared_task
@@ -113,7 +117,6 @@ def PakistaniStoresLaptopScraper(url):
     title = soup.title
     # print(title)
     for x in range(1, 30):
-        url = "https://pakistanistores.com/prices/laptops-and-pc/laptops/dell?p=" + str(x)
         urlList = soup.find_all("li", class_="col-md-3 col-md-3 col-sm-6 col-xs-6")
         for li in urlList:
             try:

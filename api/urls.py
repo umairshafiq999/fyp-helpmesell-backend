@@ -16,11 +16,9 @@ urlpatterns = [
     path('api/price/',PriceAPIView.as_view()),
     path('api/localsellerdetail/',LocalSellerDetailAPIView.as_view()),
     path('api/LSUploadedData/',LocalSellerUploadedDataAPIView.as_view()),
-    path('api/ShopHiveScraper/',ShopHiveScraperAPIView.as_view()),
-    path('api/PakistaniStoresScraper/', PakistaniStoresScrapersAPIView.as_view()),
+    path('api/Scrapers/',ScrapersAPIView.as_view()),
     path('api/Packages/',PackageAPIView.as_view()),
     path('api/Payment/',PaymentAPIView.as_view()),
-
 
 ]
 
