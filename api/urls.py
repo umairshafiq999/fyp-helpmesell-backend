@@ -11,7 +11,7 @@ urlpatterns = [
     path('api-token-auth/', obtain_auth_token),
     path('api/products/',ProductAPIView.as_view()),
     path('api/product/<int:id>/',ProductDetailAPIView.as_view()),
-    path('api/product/<str:product_name>/',ProductSearchThroughNameAPIView.as_view()),
+    path('api/related_products/<int:id>/',ProductSearchThroughNameAPIView.as_view()),
     path('api/reviews/',ProductReviewAPIView.as_view()),
     path('api/price/',PriceAPIView.as_view()),
     path('api/localsellerdetail/',LocalSellerDetailAPIView.as_view()),

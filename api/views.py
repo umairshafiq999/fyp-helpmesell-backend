@@ -113,9 +113,10 @@ class ProductSearchThroughNameAPIView(APIView):
         except Product.DoesNotExist:
             return Response(status.HTTP_400_BAD_REQUEST)
 
-    def get(self, request, product_name):
+    def get(self, request, id):
+        product = Product.objects.get(id=id)
         products = []
-        for product in Product.objects.filter(product_name__icontains=product_name):
+        for product in Product.objects.filter(product_name__icontains=product.product_name):
             prices = ""
             for price in Price.objects.filter(product_id=product.id):
                 prices = prices + price.product_price + '(' + price.reference_site + '), '
