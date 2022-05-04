@@ -109,20 +109,16 @@ class ProductDetailAPIView(APIView):
 class ProductSearchThroughNameAPIView(APIView):
     def get_object(self, product_name):
         try:
-            return Product.objects.filter(product_name__contains=product_name)
+            return Product.objects.filter(product_name__icontains=product_name)
         except Product.DoesNotExist:
             return Response(status.HTTP_400_BAD_REQUEST)
 
     def get(self, request, product_name):
         products = []
-        for product in Product.objects.filter(product_name__contains=product_name):
-            prices = []
+        for product in Product.objects.filter(product_name__icontains=product_name):
+            prices = ""
             for price in Price.objects.filter(product_id=product.id):
-                prices.append({
-                    'id': price.id,
-                    'product_price': price.product_price,
-                    'reference_site': price.reference_site
-                })
+                prices = prices + price.product_price + '(' + price.reference_site + '), '
             products.append({
                 'product_name': product.product_name,
                 'id': product.id,
@@ -138,7 +134,6 @@ class ProductSearchThroughNameAPIView(APIView):
             },
             status=status.HTTP_200_OK
         )
-
 
 
 class ProductReviewAPIView(APIView):
@@ -232,7 +227,7 @@ class LocalSellerUploadedDataAPIView(APIView):
                         min_price=20000,
                         max_price=30000,
                         offered_by=3,
-                        category_name = row[0][0: 12]
+                        category_name=row[0][0: 12]
 
                     )
                     Price.objects.create(
@@ -273,18 +268,25 @@ class PackageAPIView(APIView):
 class PaymentAPIView(APIView):
     def post(self, request):
         try:
-            checkout_session = stripe.checkout.Session.create(
-                line_items=[
-                    {
-                        'price': request.data['package_price'],
-                        'quantity': 1,
-                    },
-                ],
-                payment_method_types={'card', },
-                mode='payment',
-                success_url=settings.PAYMENT_URL + '/?success=true',
-                cancel_url=settings.PAYMENT_URL + '/?canceled=true',
+            user = stripe.User.create(
+                username=request.data['username'],
+                payment_method=request.data['payment_method_id'],
+                is_subscribed=True,
+                invoice_settings={
+                    'default_payment_method': request.data['payment_method_id']
+                }
             )
+            stripe.Subscription.create(
+                user=user,
+                items=[
+                    {
+                        'price': 'prod_Ld40YnBLY7Bdak'
+
+                    }
+                ]
+            )
+
             return Response("Payment Successful", status.HTTP_200_OK)
+
         except:
             return Response("Payment not successful", status.HTTP_500_INTERNAL_SERVER_ERROR)

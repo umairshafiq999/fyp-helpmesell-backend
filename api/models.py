@@ -69,6 +69,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_admin = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
+    is_subscribed = models.BooleanField(default=False)
 
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['password', 'first_name', 'last_name', 'dob', 'email', 'contact_no', 'state']
@@ -118,10 +119,7 @@ class Product(models.Model):
     def __str__(self):
         return self.product_name
 
-for product in Product.objects.all():
-    if 'apple' in product.category_name.lower():
-        product.category_name = product.product_name.lower().replace('apple', '').replace('|', '')[0: 8].lstrip()
-        product.save()
+
 
 class Price(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
