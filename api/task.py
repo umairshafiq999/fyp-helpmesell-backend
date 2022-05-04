@@ -21,33 +21,33 @@ def DataCleaningOfShophive(price):
 
 # @shared_task
 # def LocalSellerFileUpload(file):
-    # fileSheet = pandas.read_excel(file, sheet_name=0, index_col=0, header=0)
-    #
-    # for row in fileSheet.iterrows():
-    #     try:
-    #         product = Product.objects.get(product_name=row[0])
-    #         Price.objects.create(
-    #             product=product,
-    #             reference_site="shophive.com",
-    #             product_price=row[1]
-    #         )
-    #     except Product.DoesNotExist:
-    #         product = Product.objects.create(
-    #             product_name=row[0],
-    #             product_description='Great Phone',
-    #             product_image="https://www.apple.com/newsroom/images/product/iphone/standard/Apple_announce-iphone12pro_10132020.jpg.landing-big_2x.jpg",
-    #             min_price=20000,
-    #             max_price=30000,
-    #             offered_by=3
-    #
-    #         )
-    #         Price.objects.create(
-    #             product_id=product.id,
-    #             reference_site="shophive.com",
-    #             product_price=row[1]
-    #
-    #         )
-    # print("Hello", file)
+# fileSheet = pandas.read_excel(file, sheet_name=0, index_col=0, header=0)
+#
+# for row in fileSheet.iterrows():
+#     try:
+#         product = Product.objects.get(product_name=row[0])
+#         Price.objects.create(
+#             product=product,
+#             reference_site="shophive.com",
+#             product_price=row[1]
+#         )
+#     except Product.DoesNotExist:
+#         product = Product.objects.create(
+#             product_name=row[0],
+#             product_description='Great Phone',
+#             product_image="https://www.apple.com/newsroom/images/product/iphone/standard/Apple_announce-iphone12pro_10132020.jpg.landing-big_2x.jpg",
+#             min_price=20000,
+#             max_price=30000,
+#             offered_by=3
+#
+#         )
+#         Price.objects.create(
+#             product_id=product.id,
+#             reference_site="shophive.com",
+#             product_price=row[1]
+#
+#         )
+# print("Hello", file)
 
 
 @shared_task
@@ -79,32 +79,35 @@ def ShopHiveScraper(url):
 
             row = [name, price, image]
             print(row)
-
-            try:
-                product = Product.objects.get(product_name=row[0])
+            if 'apple' and 'iphone' in url:
                 try:
-                    Price.objects.get(product_id=product.id, reference_site="shophive.com")
-                    pass
-                except:
+                    product = Product.objects.get(product_name=row[0])
+                    try:
+                        Price.objects.get(product_id=product.id, reference_site="shophive.com")
+                        pass
+                    except:
+                        Price.objects.create(
+                            product=product,
+                            reference_site="shophive.com",
+                            product_price=row[1].replace('Special Price', '').replace(' ', '')
+                        )
+
+                except Product.DoesNotExist:
+                    product = Product.objects.create(
+                        product_name=row[0],
+                        product_description='Great Phone',
+                        product_image=row[2]['data-src'],
+                        category=2,
+                        subcategory=1,
+                        category_name=row[0][0:12]
+
+                    )
                     Price.objects.create(
-                        product=product,
+                        product_id=product.id,
                         reference_site="shophive.com",
                         product_price=row[1].replace('Special Price', '').replace(' ', '')
+
                     )
-
-            except Product.DoesNotExist:
-                product = Product.objects.create(
-                    product_name=row[0],
-                    product_description='Great Phone',
-                    product_image=row[2]['data-src']
-
-                )
-                Price.objects.create(
-                    product_id=product.id,
-                    reference_site="shophive.com",
-                    product_price=row[1].replace('Special Price', '').replace(' ', '')
-
-                )
 
 
 @shared_task
@@ -150,7 +153,8 @@ def PakistaniStoresLaptopScraper(url):
                 product = Product.objects.create(
                     product_name=row[0],
                     product_description='Great Phone',
-                    product_image=row[2]['data-src']
+                    product_image=row[2]['data-src'],
+                    category_name=row[0][0:12]
 
                 )
                 Price.objects.create(
@@ -207,7 +211,8 @@ def PakistaniStoresMobileScraper(url):
                 product = Product.objects.create(
                     product_name=row[0],
                     product_description='Great Phone',
-                    product_image=row[2]['data-src']
+                    product_image=row[2]['data-src'],
+                    category_name=row[0][0:12]
 
                 )
                 Price.objects.create(

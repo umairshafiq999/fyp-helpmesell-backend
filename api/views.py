@@ -109,14 +109,36 @@ class ProductDetailAPIView(APIView):
 class ProductSearchThroughNameAPIView(APIView):
     def get_object(self, product_name):
         try:
-            return Product.objects.get(product_name=product_name)
+            return Product.objects.filter(product_name__contains=product_name)
         except Product.DoesNotExist:
             return Response(status.HTTP_400_BAD_REQUEST)
 
     def get(self, request, product_name):
-        products = self.get_object(product_name)
-        serializer = ProductSerializer(products)
-        return Response(serializer.data)
+        products = []
+        for product in Product.objects.filter(product_name__contains=product_name):
+            prices = []
+            for price in Price.objects.filter(product_id=product.id):
+                prices.append({
+                    'id': price.id,
+                    'product_price': price.product_price,
+                    'reference_site': price.reference_site
+                })
+            products.append({
+                'product_name': product.product_name,
+                'id': product.id,
+                'product_image': product.product_image,
+                'prices': prices,
+                'category_name': product.category_name
+            })
+        return Response(
+            {
+                'success': True,
+                'detail': 'product with all prices',
+                'data': products
+            },
+            status=status.HTTP_200_OK
+        )
+
 
 
 class ProductReviewAPIView(APIView):
@@ -209,7 +231,8 @@ class LocalSellerUploadedDataAPIView(APIView):
                         product_image="https://www.apple.com/newsroom/images/product/iphone/standard/Apple_announce-iphone12pro_10132020.jpg.landing-big_2x.jpg",
                         min_price=20000,
                         max_price=30000,
-                        offered_by=3
+                        offered_by=3,
+                        category_name = row[0][0: 12]
 
                     )
                     Price.objects.create(

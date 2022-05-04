@@ -89,6 +89,21 @@ class User(AbstractBaseUser, PermissionsMixin):
         return ''
 
 
+class Category(models.Model):
+    category_name = models.CharField(verbose_name="Category Name", max_length=100)
+
+    def __str__(self):
+        return self.category_name
+
+
+class SubCategory(models.Model):
+    category_id = models.ForeignKey(Category, on_delete=models.CASCADE)
+    subcategory_name = models.CharField(verbose_name="SubCategory Name", max_length=100)
+
+    def __str__(self):
+        return self.subcategory_name
+
+
 class Product(models.Model):
     product_name = models.CharField(verbose_name="Product Name", max_length=100)
     product_description = models.CharField(verbose_name="Product Description", max_length=1000)
@@ -96,10 +111,17 @@ class Product(models.Model):
     min_price = models.IntegerField(verbose_name="Minimum Price", default=0)
     max_price = models.IntegerField(verbose_name="Maximum Price", default=0)
     offered_by = models.IntegerField(verbose_name="Offered By", default=0)
+    category = models.ForeignKey(Category, verbose_name="Category", on_delete=models.CASCADE, default=1)
+    category_name = models.CharField(verbose_name="Category Name",max_length=200,default="")
+    subcategory = models.ForeignKey(SubCategory, verbose_name="Sub Category", on_delete=models.CASCADE, default=1)
 
     def __str__(self):
         return self.product_name
 
+for product in Product.objects.all():
+    if 'apple' in product.category_name.lower():
+        product.category_name = product.product_name.lower().replace('apple', '').replace('|', '')[0: 8].lstrip()
+        product.save()
 
 class Price(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
