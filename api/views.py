@@ -271,7 +271,7 @@ class PaymentAPIView(APIView):
     def post(self, request):
         try:
             user = stripe.Customer.create(
-                username=request.POST.get('name'),
+                username=request.POST.get('username'),
                 payment_method=request.POST.get('payment_method_id'),
                 invoice_settings={
                     'default_payment_method': request.POST.get('payment_method_id')
