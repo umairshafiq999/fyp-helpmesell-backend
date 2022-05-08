@@ -268,6 +268,7 @@ class PackageAPIView(APIView):
 
 class PaymentAPIView(APIView):
     def post(self, request):
+        try:
             user = stripe.User.create(
                 username=request.data['name'],
                 payment_method=request.data['payment_method_id'],
@@ -287,5 +288,7 @@ class PaymentAPIView(APIView):
                 ]
             )
 
-            return Response("Payment Successful",status.HTTP_200_OK)
+            return Response("Payment Successful", status.HTTP_200_OK)
 
+        except:
+            return Response("Payment not successful", status.HTTP_500_INTERNAL_SERVER_ERROR)
