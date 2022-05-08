@@ -281,14 +281,14 @@ class PaymentAPIView(APIView):
                 user=user,
                 items=[
                     {
-                        'product': request.data['priceId'],
-                        'price': request.data['packageId']
+                        'product': request.data['packageId'],
+                        'price': request.data['priceId']
 
                     }
                 ]
             )
 
-            return Response("Payment Successful", status.HTTP_200_OK,)
+            return Response("Payment Successful", status.HTTP_200_OK)
 
         except:
             return Response("Payment not successful", status.HTTP_500_INTERNAL_SERVER_ERROR)
