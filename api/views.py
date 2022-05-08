@@ -267,25 +267,21 @@ class PackageAPIView(APIView):
 
 
 class PaymentAPIView(APIView):
+
     def post(self, request):
         try:
-            user = stripe.User.create(
-                username=request.data['name'],
-                payment_method=request.data['payment_method_id'],
-                is_subscribed=True,
+            user = stripe.Customer.create(
+                username=request.POST.get('name'),
+                payment_method=request.POST.get('payment_method_id'),
                 invoice_settings={
-                    'default_payment_method': request.data['payment_method_id']
+                    'default_payment_method': request.POST.get('payment_method_id')
                 }
             )
             stripe.Subscription.create(
-                user=user,
-                items=[
-                    {
-                        'product': request.data['packageId'],
-                        'price': request.data['priceId']
-
-                    }
-                ]
+                customer=user,
+                items=[{"price": "price_1Kvnt3FVG2XMVBbYQcqT5iWH"}
+                    ,
+                       ],
             )
 
             return Response("Payment Successful", status.HTTP_200_OK)
