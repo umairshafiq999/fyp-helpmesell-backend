@@ -113,13 +113,11 @@ class Product(models.Model):
     max_price = models.IntegerField(verbose_name="Maximum Price", default=0)
     offered_by = models.IntegerField(verbose_name="Offered By", default=0)
     category = models.ForeignKey(Category, verbose_name="Category", on_delete=models.CASCADE, default=1)
-    category_name = models.CharField(verbose_name="Category Name",max_length=200,default="")
+    category_name = models.CharField(verbose_name="Category Name", max_length=200, default="")
     subcategory = models.ForeignKey(SubCategory, verbose_name="Sub Category", on_delete=models.CASCADE, default=1)
 
     def __str__(self):
         return self.product_name
-
-
 
 class Price(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
@@ -165,6 +163,13 @@ class Package(models.Model):
     package_price = models.IntegerField(verbose_name="Package Price")
     package_duration = models.CharField(verbose_name="Package Duration", max_length=25)
     package_description = models.CharField(verbose_name="Package Description", max_length=1000)
+    package_keywords = models.IntegerField(verbose_name="Package Keywords", default=0)
 
     def __str__(self):
         return self.package_name
+
+
+class PackageConsumedDetail(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    package = models.ForeignKey(Package, on_delete=models.CASCADE, null=True, blank=True)
+    Keywords_count = models.IntegerField(verbose_name="Keywords Count",default=0)

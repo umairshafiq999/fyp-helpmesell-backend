@@ -69,11 +69,15 @@ class UserLoginAPIView(ObtainAuthToken):
             'token': token.key,
             'username': user.username,
             'first_name': user.first_name,
-            'state': user.state
+            'state': user.state,
+            'is_subscribed': user.is_subscribed
+
         })
 
 
 class ProductAPIView(APIView):
+    # authentication_classes = [SessionAuthentication, BasicAuthentication]
+    # permission_classes = [IsAuthenticated]
     def get(self, request):
         products = Product.objects.all()
         serializer = ProductSerializer(products, many=True)
@@ -90,6 +94,9 @@ class ProductAPIView(APIView):
 
 class ProductDetailAPIView(APIView):
     def get(self, request, id):
+        # if Package.package_name == 'Basic' and Package.package_keywords < request.POST.get('package_keywords'):
+        #         if Package.package_name == 'Standard' and Package.package_keywords < request.POST.get('package_keywords'):
+        #             if Package.package_name == 'Premium' and Package.package_keywords < request.POST.get('package_keywords'):
         try:
             product = Product.objects.filter(pk=id).values()
             product_prices = Price.objects.filter(product_id=product[0]['id']).values()
@@ -102,8 +109,54 @@ class ProductDetailAPIView(APIView):
                 },
                 status=status.HTTP_200_OK
             )
+
         except Product.DoesNotExist:
             return Response(status.HTTP_400_BAD_REQUEST)
+
+
+class LaptopsAPIView(APIView):
+    def get(self, request):
+        products = Product.objects.filter(category=1)
+        serializer = ProductSerializer(products, many=True)
+        return Response(serializer.data)
+
+
+class MobilesAPIView(APIView):
+    def get(self, request):
+        products = Product.objects.filter(category=2)
+        serializer = ProductSerializer(products, many=True)
+        return Response(serializer.data)
+
+
+class ProductSearchThroughIDAPIView(APIView):
+    def get_object(self, product_name):
+        try:
+            return Product.objects.filter(category_name__icontains=product_name)
+        except Product.DoesNotExist:
+            return Response(status.HTTP_400_BAD_REQUEST)
+
+    def get(self, request, id):
+        product = Product.objects.get(id=id)
+        products = []
+        for product in Product.objects.filter(category_name__icontains=product.category_name):
+            prices = ""
+            for price in Price.objects.filter(product_id=product.id):
+                prices = prices + price.product_price + '(' + price.reference_site + '), '
+            products.append({
+                'product_name': product.product_name,
+                'id': product.id,
+                'product_image': product.product_image,
+                'prices': prices,
+                'category_name': product.category_name
+            })
+        return Response(
+            {
+                'success': True,
+                'detail': 'product with all prices',
+                'data': products
+            },
+            status=status.HTTP_200_OK
+        )
 
 
 class ProductSearchThroughNameAPIView(APIView):
@@ -113,8 +166,8 @@ class ProductSearchThroughNameAPIView(APIView):
         except Product.DoesNotExist:
             return Response(status.HTTP_400_BAD_REQUEST)
 
-    def get(self, request, id):
-        product = Product.objects.get(id=id)
+    def get(self, request, product_name):
+        product = Product.objects.get(product_name=product_name)
         products = []
         for product in Product.objects.filter(category_name__icontains=product.category_name):
             prices = ""
@@ -267,21 +320,35 @@ class PackageAPIView(APIView):
 
 
 class PaymentAPIView(APIView):
-
     def post(self, request):
         try:
             user = stripe.Customer.create(
                 name=request.POST.get('name'),
-                email = request.POST.get('email'),
+                email=request.POST.get('email'),
+
+            )
+            paymentMethod = stripe.PaymentMethod.create(
+                type="card",
+                card={
+                    "number": request.POST.get('number'),
+                    "exp_month": request.POST.get('exp_month'),
+                    "exp_year": request.POST.get('exp_year'),
+                    "cvc": request.POST.get('cvc'),
+                },
+            )
+            payment_attachment = stripe.PaymentMethod.attach(
+                paymentMethod,
+                customer=user,
+            )
+            stripe.Customer.modify(
+                user.id,
                 invoice_settings={
-                    'default_payment_method': request.POST.get('payment_method_id')
+                    'default_payment_method': payment_attachment
                 }
             )
             stripe.Subscription.create(
                 customer=user,
-                items=[{"price": "price_1Kvnt3FVG2XMVBbYQcqT5iWH"}
-                    ,
-                       ],
+                items=[{"price": request.POST.get('price')}],
             )
 
             return Response("Payment Successful", status.HTTP_200_OK)

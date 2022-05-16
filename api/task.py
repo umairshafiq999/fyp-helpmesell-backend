@@ -79,7 +79,7 @@ def ShopHiveScraper(url):
 
             row = [name, price, image]
             print(row)
-            if 'apple' and 'iphone' in url:
+            if 'laptops' in url:
                 try:
                     product = Product.objects.get(product_name=row[0])
                     try:
@@ -91,14 +91,39 @@ def ShopHiveScraper(url):
                             reference_site="shophive.com",
                             product_price=row[1].replace('Special Price', '').replace(' ', '')
                         )
-
                 except Product.DoesNotExist:
                     product = Product.objects.create(
                         product_name=row[0],
                         product_description='Great Phone',
                         product_image=row[2]['data-src'],
-                        category=2,
-                        subcategory=1,
+                        category_id=1,
+                        category_name=row[0][0:12]
+
+                    )
+                    Price.objects.create(
+                        product_id=product.id,
+                        reference_site="shophive.com",
+                        product_price=row[1].replace('Special Price', '').replace(' ', '')
+
+                    )
+            if 'mobiles' and 'apple' in url:
+                try:
+                    product = Product.objects.get(product_name=row[0])
+                    try:
+                        Price.objects.get(product_id=product.id, reference_site="shophive.com")
+                        pass
+                    except:
+                        Price.objects.create(
+                            product=product,
+                            reference_site="shophive.com",
+                            product_price=row[1].replace('Special Price', '').replace(' ', '')
+                        )
+                except Product.DoesNotExist:
+                    product = Product.objects.create(
+                        product_name=row[0],
+                        product_description='Great Phone',
+                        product_image=row[2]['data-src'],
+                        category_id=2,
                         category_name=row[0][0:12]
 
                     )
@@ -154,6 +179,7 @@ def PakistaniStoresLaptopScraper(url):
                     product_name=row[0],
                     product_description='Great Phone',
                     product_image=row[2]['data-src'],
+                    category_id=1,
                     category_name=row[0][0:12]
 
                 )
@@ -212,6 +238,7 @@ def PakistaniStoresMobileScraper(url):
                     product_name=row[0],
                     product_description='Great Phone',
                     product_image=row[2]['data-src'],
+                    category_id=2,
                     category_name=row[0][0:12]
 
                 )

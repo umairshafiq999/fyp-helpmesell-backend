@@ -13,5 +13,6 @@ admin.site.register(LocalSellerUploadedData)
 admin.site.register(Package)
 admin.site.register(Category)
 admin.site.register(SubCategory)
+admin.site.register(PackageConsumedDetail)
 
 
