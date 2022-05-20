@@ -335,7 +335,7 @@ class PaymentAPIView(APIView):
 
                 )
                 exp_date = request.POST.get('exp_date')
-                [exp_month, exp_year] = exp_date.replace(' ', '').split('/')
+                [exp_month, exp_year] = exp_date.split('/')
                 paymentMethod = stripe.PaymentMethod.create(
                     type="card",
                     card={
