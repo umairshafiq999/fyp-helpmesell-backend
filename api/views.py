@@ -327,12 +327,14 @@ class PaymentAPIView(APIView):
                 email=request.POST.get('email'),
 
             )
+            exp_date = request.POST.get('exp_date')
+            [exp_year, exp_month] = exp_date.split('/')
             paymentMethod = stripe.PaymentMethod.create(
                 type="card",
                 card={
                     "number": request.POST.get('number'),
-                    "exp_month": request.POST.get('exp_month'),
-                    "exp_year": request.POST.get('exp_year'),
+                    "exp_month": exp_month,
+                    "exp_year": exp_year,
                     "cvc": request.POST.get('cvc'),
                 },
             )
