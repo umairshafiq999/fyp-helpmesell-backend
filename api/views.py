@@ -32,8 +32,9 @@ class UserAPIView(APIView):
             return Response(user.data, status.HTTP_201_CREATED)
         return Response(user.errors, status.HTTP_400_BAD_REQUEST)
 
+
 class GetUserAPIView(APIView):
-    def get(self,request,id):
+    def get(self, request, id):
         user = User.objects.get(id=id)
         serializer = UserSerializer(user)
         return Response(serializer.data)
@@ -326,40 +327,43 @@ class PackageAPIView(APIView):
 
 
 class PaymentAPIView(APIView):
-    def post(self, request):
-        try:
-            user = stripe.Customer.create(
-                name=request.POST.get('name'),
-                email=request.POST.get('email'),
+        def post(self, request):
+            try:
+                user = stripe.Customer.create(
+                    name=request.POST.get('name'),
+                    email=request.POST.get('email'),
 
-            )
-            exp_date = request.POST.get('exp_date')
-            [exp_month,exp_year] = exp_date.split('/')
-            paymentMethod = stripe.PaymentMethod.create(
-                type="card",
-                card={
-                    "number": request.POST.get('number'),
-                    "exp_month": exp_month,
-                    "exp_year": exp_year,
-                    "cvc": request.POST.get('cvc'),
-                },
-            )
-            payment_attachment = stripe.PaymentMethod.attach(
-                paymentMethod,
-                customer=user,
-            )
-            stripe.Customer.modify(
-                user.id,
-                invoice_settings={
-                    'default_payment_method': payment_attachment
-                }
-            )
-            stripe.Subscription.create(
-                customer=user,
-                items=[{"price": request.POST.get('price')}],
-            )
+                )
+                exp_date = request.POST.get('exp_date')
+                [exp_month, exp_year] = exp_date.split('/')
+                paymentMethod = stripe.PaymentMethod.create(
+                    type="card",
+                    card={
+                        "number": request.POST.get('number'),
+                        "exp_month": exp_month,
+                        "exp_year": exp_year,
+                        "cvc": request.POST.get('cvc'),
+                    },
+                )
+                payment_attachment = stripe.PaymentMethod.attach(
+                    paymentMethod,
+                    customer=user,
+                )
+                stripe.Customer.modify(
+                    user.id,
+                    invoice_settings={
+                        'default_payment_method': payment_attachment
+                    }
+                )
+                stripe.Subscription.create(
+                    customer=user,
+                    items=[{"price": request.POST.get('price')}],
+                )
 
-            return Response("Payment Successful", status.HTTP_200_OK)
+                return Response("Payment Successful", status.HTTP_200_OK)
+            except:
+                return Response("Payment Not Successful", status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        except:
-            return Response("Payment not successful", status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
