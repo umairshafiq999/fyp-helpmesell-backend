@@ -6,6 +6,7 @@ from django.conf import settings
 
 urlpatterns = [
     path('users/',UserAPIView.as_view()),
+    path('user/<int:id>',GetUserAPIView.as_view()),
     path('localSellerSignUp/',LocalSellerSignUpAPIView.as_view()),
     path('userslogin/',UserLoginAPIView.as_view()),
     path('api-token-auth/', obtain_auth_token),

@@ -32,6 +32,12 @@ class UserAPIView(APIView):
             return Response(user.data, status.HTTP_201_CREATED)
         return Response(user.errors, status.HTTP_400_BAD_REQUEST)
 
+class GetUserAPIView(APIView):
+    def get(self,request,id):
+        user = User.objects.get(id=id)
+        serializer = UserSerializer(user)
+        return Response(serializer.data)
+
 
 class LocalSellerSignUpAPIView(APIView):
     authentication_classes = [SessionAuthentication, BasicAuthentication]
@@ -328,7 +334,7 @@ class PaymentAPIView(APIView):
 
             )
             exp_date = request.POST.get('exp_date')
-            [exp_year, exp_month] = exp_date.split('/')
+            [exp_month,exp_year] = exp_date.split('/')
             paymentMethod = stripe.PaymentMethod.create(
                 type="card",
                 card={
