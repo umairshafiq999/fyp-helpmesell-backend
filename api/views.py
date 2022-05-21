@@ -156,6 +156,16 @@ class ProductSearchThroughIDAPIView(APIView):
                 'prices': prices,
                 'category_name': product.category_name
             })
+            user_id = request.POST.get('user_id')
+            user = User.objects.get(id= user_id)
+            user_detail = PackageConsumedDetail.objects.get(user=user_id)
+            package = user_detail.package
+            user_detail.Keywords_count = user_detail.Keywords_count + 1
+            user_detail.save()
+            if user_detail.Keywords_count >= package.package_keywords:
+                user.is_subscribed = False
+                user.save()
+
         return Response(
             {
                 'success': True,
@@ -164,7 +174,6 @@ class ProductSearchThroughIDAPIView(APIView):
             },
             status=status.HTTP_200_OK
         )
-
 
 class ProductSearchThroughNameAPIView(APIView):
     def get_object(self, product_name):
@@ -327,44 +336,62 @@ class PackageAPIView(APIView):
 
 
 class PaymentAPIView(APIView):
-        def post(self, request):
-            try:
-                user = stripe.Customer.create(
-                    name=request.POST.get('name'),
-                    email=request.POST.get('email'),
+    def post(self, request):
+        try:
+            user = stripe.Customer.create(
+                name=request.POST.get('name'),
+                email=request.POST.get('email'),
 
-                )
-                exp_date = request.POST.get('exp_date')
-                [exp_month, exp_year] = exp_date.split('/')
-                paymentMethod = stripe.PaymentMethod.create(
-                    type="card",
-                    card={
-                        "number": request.POST.get('number'),
-                        "exp_month": exp_month,
-                        "exp_year": exp_year,
-                        "cvc": request.POST.get('cvc'),
-                    },
-                )
-                payment_attachment = stripe.PaymentMethod.attach(
-                    paymentMethod,
-                    customer=user,
-                )
-                stripe.Customer.modify(
-                    user.id,
-                    invoice_settings={
-                        'default_payment_method': payment_attachment
-                    }
-                )
-                stripe.Subscription.create(
-                    customer=user,
-                    items=[{"price": request.POST.get('price')}],
-                )
+            )
+            exp_date = request.POST.get('exp_date')
+            [exp_month, exp_year] = exp_date.split('/')
+            paymentMethod = stripe.PaymentMethod.create(
+                type="card",
+                card={
+                    "number": request.POST.get('number'),
+                    "exp_month": exp_month,
+                    "exp_year": exp_year,
+                    "cvc": request.POST.get('cvc'),
+                },
+            )
+            payment_attachment = stripe.PaymentMethod.attach(
+                paymentMethod,
+                customer=user,
+            )
+            stripe.Customer.modify(
+                user.id,
+                invoice_settings={
+                    'default_payment_method': payment_attachment
+                }
+            )
+            stripe.Subscription.create(
+                customer=user,
+                items=[{"price": request.POST.get('price')}],
+            )
+            # user_id = request.POST.get('user_id')
+            # user.is_subscribed = True
+            # package_id = request.POST.get('package_id')
+            # PackageConsumedDetail.objects.create(
+            #     user=user_id,
+            #     package=package_id
+            # )
 
-                return Response("Payment Successful", status.HTTP_200_OK)
+            return Response("Payment Successful", status.HTTP_200_OK)
 
-            except:
-                return Response("Payment Not Successful", status.HTTP_500_INTERNAL_SERVER_ERROR)
+        except:
+            return Response("Payment Not Successful", status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+class PackageConsumedDetailAPIView(APIView):
+    def get(self, request):
+        package_consumed_detail = PackageConsumedDetail.objects.all()
+        serializer = PackageConsumedDetailSerializer(package_consumed_detail, many=True)
+        return Response(serializer.data)
 
+    def post(self, request):
+        serializer = PackageConsumedDetailSerializer(data=request.data)
 
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status.HTTP_201_CREATED)
+        return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 

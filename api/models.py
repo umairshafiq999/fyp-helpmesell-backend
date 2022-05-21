@@ -164,6 +164,7 @@ class Package(models.Model):
     package_duration = models.CharField(verbose_name="Package Duration", max_length=25)
     package_description = models.CharField(verbose_name="Package Description", max_length=1000)
     package_keywords = models.IntegerField(verbose_name="Package Keywords", default=0)
+    package_price_id = models.CharField(verbose_name="Package Price ID",max_length=150,default="")
 
     def __str__(self):
         return self.package_name
@@ -174,4 +175,7 @@ class PackageConsumedDetail(models.Model):
     package = models.ForeignKey(Package, on_delete=models.CASCADE, null=True, blank=True)
     Keywords_count = models.IntegerField(verbose_name="Keywords Count",default=0)
 
+    def __str__(self):
+        template = '{0.user} {0.package}'
+        return template.format(self)
 

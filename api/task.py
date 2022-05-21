@@ -92,12 +92,13 @@ def ShopHiveScraper(url):
                             product_price=row[1].replace('Special Price', '').replace(' ', '')
                         )
                 except Product.DoesNotExist:
+                    [category_name, subcategory_name] = row[0].split(" ", 1)
                     product = Product.objects.create(
                         product_name=row[0],
                         product_description='Great Phone',
                         product_image=row[2]['data-src'],
                         category_id=1,
-                        category_name=row[0][0:12]
+                        category_name=subcategory_name[0:12]
 
                     )
                     Price.objects.create(
@@ -119,12 +120,13 @@ def ShopHiveScraper(url):
                             product_price=row[1].replace('Special Price', '').replace(' ', '')
                         )
                 except Product.DoesNotExist:
+                    [category_name,subcategory_name] = row[0].split(" ",1)
                     product = Product.objects.create(
                         product_name=row[0],
                         product_description='Great Phone',
                         product_image=row[2]['data-src'],
                         category_id=2,
-                        category_name=row[0][0:12]
+                        category_name=subcategory_name[0:12]
 
                     )
                     Price.objects.create(
@@ -175,12 +177,13 @@ def PakistaniStoresLaptopScraper(url):
                         product_price=row[1].replace('\n', '').replace(' ', '')
                     )
             except Product.DoesNotExist:
+                [category_name, subcategory_name] = row[0].split(" ", 1)
                 product = Product.objects.create(
                     product_name=row[0],
                     product_description='Great Phone',
                     product_image=row[2]['data-src'],
                     category_id=1,
-                    category_name=row[0][0:12]
+                    category_name=subcategory_name[0:12]
 
                 )
                 Price.objects.create(
@@ -234,12 +237,13 @@ def PakistaniStoresMobileScraper(url):
                         product_price=row[1].replace('\n', '').replace(' ', '')
                     )
             except Product.DoesNotExist:
+                [category_name, subcategory_name] = row[0].split(" ", 1)
                 product = Product.objects.create(
                     product_name=row[0],
                     product_description='Great Phone',
                     product_image=row[2]['data-src'],
                     category_id=2,
-                    category_name=row[0][0:12]
+                    category_name=subcategory_name[0:12]
 
                 )
                 Price.objects.create(
