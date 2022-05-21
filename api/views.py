@@ -156,15 +156,15 @@ class ProductSearchThroughIDAPIView(APIView):
                 'prices': prices,
                 'category_name': product.category_name
             })
-            user_id = request.POST.get('user_id')
-            user = User.objects.get(id= user_id)
-            user_detail = PackageConsumedDetail.objects.get(user=user_id)
-            package = user_detail.package
-            user_detail.Keywords_count = user_detail.Keywords_count + 1
-            user_detail.save()
-            if user_detail.Keywords_count >= package.package_keywords:
-                user.is_subscribed = False
-                user.save()
+            # user_id = request.POST.get('user_id')
+            # user = User.objects.get(id= user_id)
+            # user_detail = PackageConsumedDetail.objects.get(user=user_id)
+            # package = user_detail.package
+            # user_detail.Keywords_count = user_detail.Keywords_count + 1
+            # user_detail.save()
+            # if user_detail.Keywords_count >= package.package_keywords:
+            #     user.is_subscribed = False
+            #     user.save()
 
         return Response(
             {
