@@ -156,15 +156,15 @@ class ProductSearchThroughIDAPIView(APIView):
                 'prices': prices,
                 'category_name': product.category_name
             })
-            user_id = request.POST.get('user_id')
-            user = User.objects.get(id= user_id)
-            user_detail = PackageConsumedDetail.objects.get(user=user_id)
-            package = user_detail.package
-            user_detail.Keywords_count = user_detail.Keywords_count + 1
-            user_detail.save()
-            if user_detail.Keywords_count >= package.package_keywords:
-                user.is_subscribed = False
-                user.save()
+            # user_id = request.POST.get('user_id')
+            # user = User.objects.get(id= user_id)
+            # user_detail = PackageConsumedDetail.objects.get(user=user_id)
+            # package = user_detail.package
+            # user_detail.Keywords_count = user_detail.Keywords_count + 1
+            # user_detail.save()
+            # if user_detail.Keywords_count >= package.package_keywords:
+            #     user.is_subscribed = False
+            #     user.save()
 
         return Response(
             {
@@ -368,13 +368,13 @@ class PaymentAPIView(APIView):
                 customer=user,
                 items=[{"price": request.POST.get('price')}],
             )
-            user_id = request.POST.get('user_id')
-            user.is_subscribed = True
-            package_id = request.POST.get('package_id')
-            PackageConsumedDetail.objects.create(
-                user=user_id,
-                package=package_id
-            )
+            # user_id = request.POST.get('user_id')
+            # user.is_subscribed = True
+            # package_id = request.POST.get('package_id')
+            # PackageConsumedDetail.objects.create(
+            #     user=user_id,
+            #     package=package_id
+            # )
 
             return Response("Payment Successful", status.HTTP_200_OK)
 
