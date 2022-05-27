@@ -22,7 +22,6 @@ def DataCleaningOfShophive(price):
 @shared_task
 def LocalSellerFileUpload(file):
     fileSheet = pandas.read_excel(file, sheet_name=0, index_col=0, header=0)
-
     for row in fileSheet.iterrows():
         try:
             product = Product.objects.get(product_name=row[0])
@@ -32,13 +31,16 @@ def LocalSellerFileUpload(file):
                 product_price=row[1]
             )
         except Product.DoesNotExist:
+            [category_name, subcategory_name] = row[0].split(" ", 1)
             product = Product.objects.create(
                 product_name=row[0],
                 product_description='Great Phone',
                 product_image="https://www.apple.com/newsroom/images/product/iphone/standard/Apple_announce-iphone12pro_10132020.jpg.landing-big_2x.jpg",
                 min_price=20000,
                 max_price=30000,
-                offered_by=3
+                offered_by=3,
+                category_id=1,
+                category_name=subcategory_name[0:12]
 
             )
             Price.objects.create(
@@ -47,7 +49,6 @@ def LocalSellerFileUpload(file):
                 product_price=row[1]
 
             )
-# print("Hello", file)
 
 
 @shared_task
