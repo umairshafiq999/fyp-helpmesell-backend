@@ -142,7 +142,7 @@ class ProductSearchThroughIDAPIView(APIView):
         except Product.DoesNotExist:
             return Response(status.HTTP_400_BAD_REQUEST)
 
-    def get(self, request, id):
+    def get(self, request, id,user_id):
         product = Product.objects.get(id=id)
         products = []
         for product in Product.objects.filter(category_name__icontains=product.category_name):
@@ -156,15 +156,25 @@ class ProductSearchThroughIDAPIView(APIView):
                 'prices': prices,
                 'category_name': product.category_name
             })
-            # user_id = request.POST.get('user_id')
-            # user = User.objects.get(id= user_id)
-            # user_detail = PackageConsumedDetail.objects.get(user=user_id)
-            # package = user_detail.package
-            # user_detail.Keywords_count = user_detail.Keywords_count + 1
-            # user_detail.save()
-            # if user_detail.Keywords_count >= package.package_keywords:
-            #     user.is_subscribed = False
-            #     user.save()
+        user = User.objects.get(id=user_id)
+        try:
+            subscribed_package = PackageConsumedDetail.objects.get(user_id=user_id, state=True)
+        except PackageConsumedDetail.DoesNotExist:
+            return Response('',status.HTTP_400_BAD_REQUEST)
+
+        subscribed_package.Keywords_count = subscribed_package.Keywords_count + 1
+        subscribed_package.save()
+        try:
+            package = Package.objects.get(pk=subscribed_package.package.id)
+        except:
+            return Response('Package not found',status.HTTP_400_BAD_REQUEST)
+        if subscribed_package.Keywords_count >= package.package_keywords:
+            user.is_subscribed = False
+            subscribed_package.state = False
+            subscribed_package.save()
+            user.save()
+
+
 
         return Response(
             {
@@ -174,6 +184,7 @@ class ProductSearchThroughIDAPIView(APIView):
             },
             status=status.HTTP_200_OK
         )
+
 
 class ProductSearchThroughNameAPIView(APIView):
     def get_object(self, product_name):
@@ -279,35 +290,35 @@ class LocalSellerUploadedDataAPIView(APIView):
             data.save()
             file = settings.MEDIA_ROOT + data.ls_product_file.url[6:]
 
-            fileSheet = pandas.read_excel(file, sheet_name=0, index_col=0, header=0)
+            # fileSheet = pandas.read_excel(file, sheet_name=0, index_col=0, header=0)
+            #
+            # for row in fileSheet.iterrows():
+            #     try:
+            #         product = Product.objects.get(product_name=row[0])
+            #         Price.objects.create(
+            #             product=product,
+            #             reference_site="shophive.com",
+            #             product_price=row[1]
+            #         )
+            #     except Product.DoesNotExist:
+            #         product = Product.objects.create(
+            #             product_name=row[0],
+            #             product_description='Great Phone',
+            #             product_image="https://www.apple.com/newsroom/images/product/iphone/standard/Apple_announce-iphone12pro_10132020.jpg.landing-big_2x.jpg",
+            #             min_price=20000,
+            #             max_price=30000,
+            #             offered_by=3,
+            #             category_name=row[0][0: 12]
+            #
+            #         )
+            #         Price.objects.create(
+            #             product_id=product.id,
+            #             reference_site="shophive.com",
+            #             product_price=row[1]
+            #
+            #         )
 
-            for row in fileSheet.iterrows():
-                try:
-                    product = Product.objects.get(product_name=row[0])
-                    Price.objects.create(
-                        product=product,
-                        reference_site="shophive.com",
-                        product_price=row[1]
-                    )
-                except Product.DoesNotExist:
-                    product = Product.objects.create(
-                        product_name=row[0],
-                        product_description='Great Phone',
-                        product_image="https://www.apple.com/newsroom/images/product/iphone/standard/Apple_announce-iphone12pro_10132020.jpg.landing-big_2x.jpg",
-                        min_price=20000,
-                        max_price=30000,
-                        offered_by=3,
-                        category_name=row[0][0: 12]
-
-                    )
-                    Price.objects.create(
-                        product_id=product.id,
-                        reference_site="shophive.com",
-                        product_price=row[1]
-
-                    )
-
-            # LocalSellerFileUpload.delay(file)
+            LocalSellerFileUpload.delay(file)
             return Response(serializer.data, status.HTTP_201_CREATED)
         return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
@@ -322,6 +333,9 @@ class ScrapersAPIView(APIView):
             return Response("Data has started to Scrape", status.HTTP_201_CREATED)
         elif 'pakistanistores' in request.data['website']:
             PakistaniStoresMobileScraper.delay(request.data['website'])
+            return Response("Data has started to Scrape", status.HTTP_201_CREATED)
+        elif 'mega.pk' in request.data['website']:
+            MegaPkScraper.delay(request.data['website'])
             return Response("Data has started to Scrape", status.HTTP_201_CREATED)
 
 
@@ -339,47 +353,62 @@ class PaymentAPIView(APIView):
     def post(self, request):
         try:
             user = stripe.Customer.create(
-                name=request.POST.get('name'),
-                email=request.POST.get('email'),
+                name=request.data['name'],
+                email=request.data['email'],
 
             )
-            exp_date = request.POST.get('exp_date')
+        except:
+            return Response("Customer not created", status.HTTP_500_INTERNAL_SERVER_ERROR)
+        try:
+            exp_date = request.data['exp_date'].replace(' ', '')
             [exp_month, exp_year] = exp_date.split('/')
             paymentMethod = stripe.PaymentMethod.create(
                 type="card",
                 card={
-                    "number": request.POST.get('number'),
+                    "number": request.data['number'].replace(' ', ''),
                     "exp_month": exp_month,
                     "exp_year": exp_year,
-                    "cvc": request.POST.get('cvc'),
+                    "cvc": request.data['cvc'],
                 },
             )
+        except:
+            return Response("Payment method not created", status.HTTP_500_INTERNAL_SERVER_ERROR)
+        try:
             payment_attachment = stripe.PaymentMethod.attach(
                 paymentMethod,
                 customer=user,
             )
+        except:
+            return Response("Payment method not attached", status.HTTP_500_INTERNAL_SERVER_ERROR)
+        try:
             stripe.Customer.modify(
                 user.id,
                 invoice_settings={
                     'default_payment_method': payment_attachment
                 }
             )
+        except:
+            return Response("Customer not modified", status.HTTP_500_INTERNAL_SERVER_ERROR)
+        try:
             stripe.Subscription.create(
                 customer=user,
-                items=[{"price": request.POST.get('price')}],
+                items=[{"price": request.data['price']}],
             )
-            # user_id = request.POST.get('user_id')
-            # user.is_subscribed = True
-            # package_id = request.POST.get('package_id')
-            # PackageConsumedDetail.objects.create(
-            #     user=user_id,
-            #     package=package_id
-            # )
-
+        except:
+            return Response("Subscription not created", status.HTTP_500_INTERNAL_SERVER_ERROR)
+        try:
+            user_id = request.data['user_id']
+            User.objects.filter(id=user_id).update(is_subscribed=True)
+            PackageConsumedDetail.objects.get_or_create(
+                user_id=user_id,
+                package_id=Package.objects.get(package_price_id=request.data['price']).id,
+                state=True
+            )
             return Response("Payment Successful", status.HTTP_200_OK)
 
         except:
             return Response("Payment Not Successful", status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 class PackageConsumedDetailAPIView(APIView):
     def get(self, request):
@@ -394,4 +423,3 @@ class PackageConsumedDetailAPIView(APIView):
             serializer.save()
             return Response(serializer.data, status.HTTP_201_CREATED)
         return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
-

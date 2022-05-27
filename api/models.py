@@ -174,6 +174,7 @@ class PackageConsumedDetail(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     package = models.ForeignKey(Package, on_delete=models.CASCADE, null=True, blank=True)
     Keywords_count = models.IntegerField(verbose_name="Keywords Count",default=0)
+    state = models.BooleanField(verbose_name='state', default=True)
 
     def __str__(self):
         template = '{0.user} {0.package}'

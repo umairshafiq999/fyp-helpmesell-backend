@@ -14,7 +14,7 @@ urlpatterns = [
     path('api/laptops/',LaptopsAPIView.as_view()),
     path('api/mobiles/',MobilesAPIView.as_view()),
     path('api/product/<int:id>/',ProductDetailAPIView.as_view()),
-    path('api/related_products/<int:id>/',ProductSearchThroughIDAPIView.as_view()),
+    path('api/related_products/<int:id>/<int:user_id>/',ProductSearchThroughIDAPIView.as_view()),
     path('api/products/<str:product_name>/',ProductSearchThroughNameAPIView.as_view()),
     path('api/reviews/',ProductReviewAPIView.as_view()),
     path('api/price/',PriceAPIView.as_view()),

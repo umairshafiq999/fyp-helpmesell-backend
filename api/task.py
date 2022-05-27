@@ -19,34 +19,34 @@ def DataCleaningOfShophive(price):
     price.product_price.replace('Special Price', '').replace(' ', '')
 
 
-# @shared_task
-# def LocalSellerFileUpload(file):
-# fileSheet = pandas.read_excel(file, sheet_name=0, index_col=0, header=0)
-#
-# for row in fileSheet.iterrows():
-#     try:
-#         product = Product.objects.get(product_name=row[0])
-#         Price.objects.create(
-#             product=product,
-#             reference_site="shophive.com",
-#             product_price=row[1]
-#         )
-#     except Product.DoesNotExist:
-#         product = Product.objects.create(
-#             product_name=row[0],
-#             product_description='Great Phone',
-#             product_image="https://www.apple.com/newsroom/images/product/iphone/standard/Apple_announce-iphone12pro_10132020.jpg.landing-big_2x.jpg",
-#             min_price=20000,
-#             max_price=30000,
-#             offered_by=3
-#
-#         )
-#         Price.objects.create(
-#             product_id=product.id,
-#             reference_site="shophive.com",
-#             product_price=row[1]
-#
-#         )
+@shared_task
+def LocalSellerFileUpload(file):
+    fileSheet = pandas.read_excel(file, sheet_name=0, index_col=0, header=0)
+
+    for row in fileSheet.iterrows():
+        try:
+            product = Product.objects.get(product_name=row[0])
+            Price.objects.create(
+                product=product,
+                reference_site="Local Seller Data",
+                product_price=row[1]
+            )
+        except Product.DoesNotExist:
+            product = Product.objects.create(
+                product_name=row[0],
+                product_description='Great Phone',
+                product_image="https://www.apple.com/newsroom/images/product/iphone/standard/Apple_announce-iphone12pro_10132020.jpg.landing-big_2x.jpg",
+                min_price=20000,
+                max_price=30000,
+                offered_by=3
+
+            )
+            Price.objects.create(
+                product_id=product.id,
+                reference_site="Local Seller Data",
+                product_price=row[1]
+
+            )
 # print("Hello", file)
 
 
@@ -252,3 +252,62 @@ def PakistaniStoresMobileScraper(url):
                     product_price=row[1].replace('\n', '').replace(' ', '')
 
                 )
+
+@shared_task
+def MegaPkScraper(url):
+    r = requests.get(url)
+    htmlContent = r.content
+    # print(htmlContent)
+    soup = BeautifulSoup(htmlContent, 'html.parser')
+    # print(soup.prettify)
+    title = soup.title
+    # print(title)
+    for x in range(1, 30):
+        url = "https://www.mega.pk/laptop-dell/?p=" + str(x)
+        urlList = soup.find_all("li", class_="col-xs-6 col-sm-4 col-md-4 col-lg-3")
+        for li in urlList:
+            try:
+                name = li.find('h3').text
+            except:
+                name = ""
+            try:
+                price = li.find('div', class_="cat_price").text
+            except:
+                price = ""
+            try:
+                image = li.find('img')
+            except:
+                image = ""
+
+            row = [name, price, image]
+            print(row)
+
+            try:
+                product = Product.objects.get(product_name=row[0])
+                try:
+                    Price.objects.get(product_id=product.id, reference_site="mega.pk")
+                    pass
+                except:
+                    Price.objects.create(
+                        product=product,
+                        reference_site="mega.pk",
+                        product_price=row[1].replace('\n', '').replace(' ', '')
+                    )
+            except Product.DoesNotExist:
+                [category_name, subcategory_name] = row[0].split(" ", 1)
+                product = Product.objects.create(
+                    product_name=row[0],
+                    product_description='Great Phone',
+                    product_image=row[2]['data-original'],
+                    category_id=2,
+                    category_name=subcategory_name[0:12]
+
+                )
+                Price.objects.create(
+                    product_id=product.id,
+                    reference_site="mega.pk",
+                    product_price=row[1].replace('\n', '').replace(' ', '')
+
+                )
+
+
