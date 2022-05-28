@@ -7,7 +7,8 @@ from rest_framework.validators import UniqueTogetherValidator
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'first_name', 'last_name', 'username', 'password', 'dob', 'email', 'contact_no', 'state','is_subscribed']
+        fields = ['id', 'first_name', 'last_name', 'username', 'password', 'dob', 'email', 'contact_no', 'state',
+                  'is_subscribed']
 
         validators = [
             UniqueTogetherValidator(
@@ -34,9 +35,11 @@ class ProductReviewSerializer(serializers.ModelSerializer):
 
 class ProductSerializer(serializers.ModelSerializer):
     category = serializers.CharField(source='category.category_name')
+
     class Meta:
         model = Product
-        fields = ['id', 'product_name', 'product_description', 'product_image', 'min_price', 'max_price', 'offered_by', 'category','category_name','subcategory']
+        fields = ['id', 'product_name', 'product_description', 'product_image', 'min_price', 'max_price', 'offered_by',
+                  'category', 'category_name', 'subcategory']
 
 
 class PriceSerializer(serializers.ModelSerializer):
@@ -80,4 +83,10 @@ class SubCategorySerializer(serializers.ModelSerializer):
 class PackageConsumedDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = PackageConsumedDetail
+        fields = '__all__'
+
+
+class ProductReviewStatsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductReviewStats
         fields = '__all__'

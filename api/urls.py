@@ -23,7 +23,8 @@ urlpatterns = [
     path('api/Scrapers/',ScrapersAPIView.as_view()),
     path('api/Packages/',PackageAPIView.as_view()),
     path('api/Payment/',PaymentAPIView.as_view()),
-    path('api/PackageConsumedDetail',PackageConsumedDetailAPIView.as_view())
+    path('api/PackageConsumedDetail/',PackageConsumedDetailAPIView.as_view()),
+    path('api/ProductReviewStats/<int:product_id>/',ProductReviewStatsAPIView.as_view())
 
 ]
 

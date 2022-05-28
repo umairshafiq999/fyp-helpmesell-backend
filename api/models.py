@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
-from .constants import USER_STATE_CHOICES, FILE_STATE_CHOICES
+from .constants import *
 
 
 # Create your models here.
@@ -119,6 +119,7 @@ class Product(models.Model):
     def __str__(self):
         return self.product_name
 
+
 class Price(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     reference_site = models.CharField(verbose_name="Reference Site", max_length=1000)
@@ -131,9 +132,21 @@ class Price(models.Model):
 class ProductReview(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     product_reviews = models.CharField(verbose_name="Product Reviews", max_length=1000)
+    review_type = models.SmallIntegerField(verbose_name='Review Type', choices=REVIEW_TYPE_CHOICES, default=1)
 
     def __str__(self):
-        return self.product_reviews
+        template = '{0.product} {0.product_reviews}'
+        return template.format(self)
+
+
+class ProductReviewStats(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    positive = models.IntegerField(verbose_name="Positive Reviews Count")
+    neutral = models.IntegerField(verbose_name="Neutral Reviews Count")
+    negative = models.IntegerField(verbose_name="Negative Reviews Count")
+
+    def __str__(self):
+        return str(self.product)
 
 
 class LocalSellerDetail(models.Model):
@@ -164,7 +177,7 @@ class Package(models.Model):
     package_duration = models.CharField(verbose_name="Package Duration", max_length=25)
     package_description = models.CharField(verbose_name="Package Description", max_length=1000)
     package_keywords = models.IntegerField(verbose_name="Package Keywords", default=0)
-    package_price_id = models.CharField(verbose_name="Package Price ID",max_length=150,default="")
+    package_price_id = models.CharField(verbose_name="Package Price ID", max_length=150, default="")
 
     def __str__(self):
         return self.package_name
@@ -173,10 +186,9 @@ class Package(models.Model):
 class PackageConsumedDetail(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     package = models.ForeignKey(Package, on_delete=models.CASCADE, null=True, blank=True)
-    Keywords_count = models.IntegerField(verbose_name="Keywords Count",default=0)
+    Keywords_count = models.IntegerField(verbose_name="Keywords Count", default=0)
     state = models.BooleanField(verbose_name='state', default=True)
 
     def __str__(self):
         template = '{0.user} {0.package}'
         return template.format(self)
-

@@ -14,5 +14,6 @@ admin.site.register(Package)
 admin.site.register(Category)
 admin.site.register(SubCategory)
 admin.site.register(PackageConsumedDetail)
+admin.site.register(ProductReviewStats)
 
 

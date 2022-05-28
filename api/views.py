@@ -142,7 +142,7 @@ class ProductSearchThroughIDAPIView(APIView):
         except Product.DoesNotExist:
             return Response(status.HTTP_400_BAD_REQUEST)
 
-    def get(self, request, id,user_id):
+    def get(self, request, id, user_id):
         product = Product.objects.get(id=id)
         products = []
         for product in Product.objects.filter(category_name__icontains=product.category_name):
@@ -160,21 +160,19 @@ class ProductSearchThroughIDAPIView(APIView):
         try:
             subscribed_package = PackageConsumedDetail.objects.get(user_id=user_id, state=True)
         except PackageConsumedDetail.DoesNotExist:
-            return Response('',status.HTTP_400_BAD_REQUEST)
+            return Response('', status.HTTP_400_BAD_REQUEST)
 
         subscribed_package.Keywords_count = subscribed_package.Keywords_count + 1
         subscribed_package.save()
         try:
             package = Package.objects.get(pk=subscribed_package.package.id)
         except:
-            return Response('Package not found',status.HTTP_400_BAD_REQUEST)
+            return Response('Package not found', status.HTTP_400_BAD_REQUEST)
         if subscribed_package.Keywords_count >= package.package_keywords:
             user.is_subscribed = False
             subscribed_package.state = False
             subscribed_package.save()
             user.save()
-
-
 
         return Response(
             {
@@ -289,35 +287,6 @@ class LocalSellerUploadedDataAPIView(APIView):
             data.user_id = request.data['user']
             data.save()
             file = settings.MEDIA_ROOT + data.ls_product_file.url[6:]
-
-            # fileSheet = pandas.read_excel(file, sheet_name=0, index_col=0, header=0)
-            #
-            # for row in fileSheet.iterrows():
-            #     try:
-            #         product = Product.objects.get(product_name=row[0])
-            #         Price.objects.create(
-            #             product=product,
-            #             reference_site="shophive.com",
-            #             product_price=row[1]
-            #         )
-            #     except Product.DoesNotExist:
-            #         product = Product.objects.create(
-            #             product_name=row[0],
-            #             product_description='Great Phone',
-            #             product_image="https://www.apple.com/newsroom/images/product/iphone/standard/Apple_announce-iphone12pro_10132020.jpg.landing-big_2x.jpg",
-            #             min_price=20000,
-            #             max_price=30000,
-            #             offered_by=3,
-            #             category_name=row[0][0: 12]
-            #
-            #         )
-            #         Price.objects.create(
-            #             product_id=product.id,
-            #             reference_site="shophive.com",
-            #             product_price=row[1]
-            #
-            #         )
-
             LocalSellerFileUpload.delay(file)
             return Response(serializer.data, status.HTTP_201_CREATED)
         return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
@@ -418,6 +387,24 @@ class PackageConsumedDetailAPIView(APIView):
 
     def post(self, request):
         serializer = PackageConsumedDetailSerializer(data=request.data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status.HTTP_201_CREATED)
+        return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+
+
+class ProductReviewStatsAPIView(APIView):
+    def get(self, request, product_id):
+        product_review_stats = ProductReviewStats.objects.get(product=product_id)
+        return Response([
+            {"type": "positive", "value": product_review_stats.positive},
+            {"type": "neutral", "value": product_review_stats.neutral},
+            {"type": "negative", "value": product_review_stats.negative}
+        ])
+
+    def post(self, request):
+        serializer = ProductReviewStatsSerializer(data=request.data)
 
         if serializer.is_valid():
             serializer.save()
