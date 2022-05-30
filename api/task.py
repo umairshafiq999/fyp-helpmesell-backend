@@ -1,11 +1,12 @@
 from celery import shared_task
 from .models import *
-from .views import *
 import pandas
-from django.conf import settings
 import requests
-import html5lib
+import nltk
+import json
+import time
 from bs4 import BeautifulSoup
+from selenium import webdriver
 
 
 def DataCleaningOfPakistaniStores(product, price):
@@ -311,4 +312,93 @@ def MegaPkScraper(url):
 
                 )
 
+@shared_task
+def pull_reviews(item_id):
+    url = "https://walmart.p.rapidapi.com/reviews/v2/list"
+    querystring = {"usItemId": item_id, "limit": "50", "page": "1", "sort": "relevancy"}
+    headers = {
+        "X-RapidAPI-Host": "walmart.p.rapidapi.com",
+        "X-RapidAPI-Key": "40a9eb4a05mshd8902de7fc70215p1c86bajsncfcb33bad973"
+    }
+    response = requests.request("GET", url, headers=headers, params=querystring)
+    for review in json.loads(response.text)['data']['reviews']['customerReviews']:
+        if review['reviewText'] and len(review['reviewText']) > 0:
+            ProductReview.objects.get_or_create(
+                product_id=Product.objects.get(walmart_id=item_id).id,
+                product_reviews=review['reviewText'],
+                review_type=3 if int(review['rating']) <= 2 else 2 if int(review['rating']) == 3 else 1
+            )
 
+
+@shared_task
+def fetch_review_type(review, review_type, product_id):
+    TraningData.objects.get_or_create(
+        review_text=review,
+        review_type=review_type
+    )
+    positive_reviews = list(TraningData.objects.filter(review_type=1).values_list('review_text', 'review_type'))
+    negative_reviews = list(TraningData.objects.filter(review_type=3).values_list('review_text', 'review_type'))
+
+    reviews = []
+
+    for (words, sentiment) in positive_reviews + negative_reviews:
+        words_filtered = [e.lower() for e in words.split() if len(e) >= 3]
+        reviews.append((words_filtered, sentiment))
+
+    def get_words_in_tweets(reviews):
+        all_words = []
+        for (words, sentiment) in reviews:
+            all_words.extend(words)
+        return all_words
+
+    def get_word_features(wordlist):
+        wordlist = nltk.FreqDist(wordlist)
+        word_features = wordlist.keys()
+        return word_features
+
+    def extract_features(document):
+        document_words = set(document)
+        features = {}
+        for word in word_features:
+            features['contains(%s)' % word] = (word in document_words)
+        return features
+
+    word_features = get_word_features(get_words_in_tweets(reviews))
+    training_set = nltk.classify.apply_features(extract_features, reviews)
+    classifier = nltk.NaiveBayesClassifier.train(training_set)
+    result = classifier.classify(extract_features(review.split()))
+    print(result)
+    if result == 1:
+        product_review_stat = ProductReviewStats.objects.get_or_create(product_id=product_id)
+        product_review_stat.positive +=1
+        product_review_stat.save()
+    else:
+        product_review_stat = ProductReviewStats.objects.get_or_create(product_id=product_id)
+        product_review_stat.negative +=1
+        product_review_stat.save()
+
+
+@shared_task
+def FetchWalmartIDs(product):
+    option = webdriver.ChromeOptions()
+    driver = webdriver.Chrome(
+        executable_path=r'D:\BNU\Sem7\Project Part-2\Scraper2\chromedriver_win32\chromedriver.exe',
+        options=option)
+    driver.maximize_window()
+    url = 'https://www.walmart.com/search?q='+ product
+    driver.get(url)
+    time.sleep(2)
+    page1 = driver.page_source
+    soup1 = BeautifulSoup(page1, 'lxml')
+    url_list = soup1.find_all("a", class_="absolute w-100 h-100 z-1")
+    local_list = []
+    for item in url_list:
+        local_list.append({
+            'product_name': item.text,
+            'walmart_id': item['link-identifier']
+        })
+    products = Product.objects.all().values_list('id','category_name')
+    for product in products:
+        for local in local_list:
+            if product[1] in local['product_name']:
+                Product.objects.filter(id=product[0]).update(walmart_id=local['walmart_id'])

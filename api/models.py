@@ -115,6 +115,7 @@ class Product(models.Model):
     category = models.ForeignKey(Category, verbose_name="Category", on_delete=models.CASCADE, default=1)
     category_name = models.CharField(verbose_name="Category Name", max_length=200, default="")
     subcategory = models.ForeignKey(SubCategory, verbose_name="Sub Category", on_delete=models.CASCADE, default=1)
+    walmart_id = models.CharField(verbose_name="Walmart Id", max_length=200, default="")
 
     def __str__(self):
         return self.product_name
@@ -141,9 +142,9 @@ class ProductReview(models.Model):
 
 class ProductReviewStats(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    positive = models.IntegerField(verbose_name="Positive Reviews Count")
-    neutral = models.IntegerField(verbose_name="Neutral Reviews Count")
-    negative = models.IntegerField(verbose_name="Negative Reviews Count")
+    positive = models.IntegerField(verbose_name="Positive Reviews Count", default=0)
+    neutral = models.IntegerField(verbose_name="Neutral Reviews Count", default=0)
+    negative = models.IntegerField(verbose_name="Negative Reviews Count", default=0)
 
     def __str__(self):
         return str(self.product)
@@ -192,3 +193,8 @@ class PackageConsumedDetail(models.Model):
     def __str__(self):
         template = '{0.user} {0.package}'
         return template.format(self)
+
+
+class TraningData(models.Model):
+    review_text = models.CharField(verbose_name="Review Text", max_length=1000)
+    review_type = models.SmallIntegerField(verbose_name="Review Type", choices=REVIEW_TYPE_CHOICES, default=1)
