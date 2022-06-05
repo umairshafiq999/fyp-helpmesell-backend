@@ -7,7 +7,7 @@ import json
 import time
 from bs4 import BeautifulSoup
 from selenium import webdriver
-
+from .constants import walmart_ids_list
 
 def DataCleaningOfPakistaniStores(product, price):
     product.product_name.replace('USA', '')  # Pakistani Stores Mobile Removals
@@ -29,7 +29,7 @@ def LocalSellerFileUpload(file):
             Price.objects.create(
                 product=product,
                 reference_site="Local Seller Data",
-                product_price=row[1]
+                product_price=[int(s) for s in str(row[1]).split() if s.isdigit()][0]
             )
         except Product.DoesNotExist:
             [category_name, subcategory_name] = row[0].split(" ", 1)
@@ -47,7 +47,8 @@ def LocalSellerFileUpload(file):
             Price.objects.create(
                 product_id=product.id,
                 reference_site="Local Seller Data",
-                product_price=row[1]
+                product_price=[int(s) for s in str(row[1]).split() if s.isdigit()][0]
+
 
             )
 
@@ -109,7 +110,7 @@ def ShopHiveScraper(url):
                         product_price=row[1].replace('Special Price', '').replace(' ', '')
 
                     )
-            if 'mobiles' and 'apple' in url:
+            if 'mobiles' or 'apple' in url:
                 try:
                     product = Product.objects.get(product_name=row[0])
                     try:
@@ -313,31 +314,43 @@ def MegaPkScraper(url):
                 )
 
 @shared_task
-def pull_reviews(item_id):
+def pull_reviews():
     url = "https://walmart.p.rapidapi.com/reviews/v2/list"
-    querystring = {"usItemId": item_id, "limit": "50", "page": "1", "sort": "relevancy"}
-    headers = {
-        "X-RapidAPI-Host": "walmart.p.rapidapi.com",
-        "X-RapidAPI-Key": "40a9eb4a05mshd8902de7fc70215p1c86bajsncfcb33bad973"
-    }
-    response = requests.request("GET", url, headers=headers, params=querystring)
-    for review in json.loads(response.text)['data']['reviews']['customerReviews']:
-        if review['reviewText'] and len(review['reviewText']) > 0:
-            ProductReview.objects.get_or_create(
-                product_id=Product.objects.get(walmart_id=item_id).id,
-                product_reviews=review['reviewText'],
-                review_type=3 if int(review['rating']) <= 2 else 2 if int(review['rating']) == 3 else 1
-            )
+    product_list = list(Product.objects.filter().values('walmart_id', 'category_name', 'id').distinct())
+    for product in product_list:
+        if product['walmart_id'] == '':
+            for walmart_const in walmart_ids_list:
+                if product['category_name'].upper() in walmart_const['product_name'].upper():
+                    Product.object.filter(pk=product['id']).update(walmart_id=walmart_const['walmart_id'])
+                    continue
+    product_list = list(Product.objects.filter().exclude(walmart_id='').values('walmart_id', 'id').distinct())
+    for product in product_list:
+        querystring = {"usItemId": product['walmart_id'], "limit": "50", "page": "1", "sort": "relevancy"}
+        headers = {
+            "X-RapidAPI-Host": "walmart.p.rapidapi.com",
+            "X-RapidAPI-Key": "40a9eb4a05mshd8902de7fc70215p1c86bajsncfcb33bad973"
+        }
+        response = requests.request("GET", url, headers=headers, params=querystring)
+        for review in json.loads(response.text)['data']['reviews']['customerReviews']:
+            if review['reviewText'] and len(review['reviewText']) > 0:
+                for product_walmart in Product.objects.filter(walmart_id=product['walmart_id']):
+                    obj, created = ProductReview.objects.get_or_create(
+                        product_id=product_walmart.id,
+                        product_reviews=review['reviewText'],
+                        review_type=3 if int(review['rating']) <= 2 else 2 if int(review['rating']) == 3 else 1
+                    )
+                    if created:
+                        fetch_review_type.delay(review['reviewText'], 3 if int(review['rating']) <= 2 else 2 if int(review['rating']) == 3 else 1, product_walmart.id)
 
 
 @shared_task
 def fetch_review_type(review, review_type, product_id):
-    TraningData.objects.get_or_create(
+    TrainingData.objects.get_or_create(
         review_text=review,
         review_type=review_type
     )
-    positive_reviews = list(TraningData.objects.filter(review_type=1).values_list('review_text', 'review_type'))
-    negative_reviews = list(TraningData.objects.filter(review_type=3).values_list('review_text', 'review_type'))
+    positive_reviews = list(TrainingData.objects.filter(review_type=1).values_list('review_text', 'review_type'))
+    negative_reviews = list(TrainingData.objects.filter(review_type=3).values_list('review_text', 'review_type'))
 
     reviews = []
 
@@ -345,7 +358,7 @@ def fetch_review_type(review, review_type, product_id):
         words_filtered = [e.lower() for e in words.split() if len(e) >= 3]
         reviews.append((words_filtered, sentiment))
 
-    def get_words_in_tweets(reviews):
+    def get_words_in_reviews(reviews):
         all_words = []
         for (words, sentiment) in reviews:
             all_words.extend(words)
@@ -363,19 +376,29 @@ def fetch_review_type(review, review_type, product_id):
             features['contains(%s)' % word] = (word in document_words)
         return features
 
-    word_features = get_word_features(get_words_in_tweets(reviews))
+    word_features = get_word_features(get_words_in_reviews(reviews))
     training_set = nltk.classify.apply_features(extract_features, reviews)
     classifier = nltk.NaiveBayesClassifier.train(training_set)
     result = classifier.classify(extract_features(review.split()))
     print(result)
     if result == 1:
-        product_review_stat = ProductReviewStats.objects.get_or_create(product_id=product_id)
-        product_review_stat.positive +=1
-        product_review_stat.save()
+        try:
+            product_review_stat = ProductReviewStats.objects.get(product_id=product_id)
+            product_review_stat.positive = product_review_stat.positive + 1
+            product_review_stat.save()
+        except:
+            product_review_stat = ProductReviewStats.objects.create(product_id=product_id)
+            product_review_stat.positive =product_review_stat.positive + 1
+            product_review_stat.save()
     else:
-        product_review_stat = ProductReviewStats.objects.get_or_create(product_id=product_id)
-        product_review_stat.negative +=1
-        product_review_stat.save()
+        try:
+            product_review_stat = ProductReviewStats.objects.get(product_id=product_id)
+            product_review_stat.negative =product_review_stat.negative + 1
+            product_review_stat.save()
+        except:
+            product_review_stat = ProductReviewStats.objects.create(product_id=product_id)
+            product_review_stat.negative = product_review_stat.negative + 1
+            product_review_stat.save()
 
 
 @shared_task
@@ -400,5 +423,5 @@ def FetchWalmartIDs(product):
     products = Product.objects.all().values_list('id','category_name')
     for product in products:
         for local in local_list:
-            if product[1] in local['product_name']:
+            if product[1].lower() in local['product_name'].lower():
                 Product.objects.filter(id=product[0]).update(walmart_id=local['walmart_id'])

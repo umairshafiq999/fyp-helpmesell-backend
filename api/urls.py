@@ -24,7 +24,8 @@ urlpatterns = [
     path('api/Packages/',PackageAPIView.as_view()),
     path('api/Payment/',PaymentAPIView.as_view()),
     path('api/PackageConsumedDetail/',PackageConsumedDetailAPIView.as_view()),
-    path('api/ProductReviewStats/<int:product_id>/',ProductReviewStatsAPIView.as_view())
+    path('api/ProductReviewStats/<int:product_id>/',ProductReviewStatsAPIView.as_view()),
+    path('api/PullReviews/',PullReviewsAPIView.as_view()),
 
 ]
 

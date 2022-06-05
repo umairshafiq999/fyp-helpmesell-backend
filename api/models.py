@@ -195,6 +195,6 @@ class PackageConsumedDetail(models.Model):
         return template.format(self)
 
 
-class TraningData(models.Model):
+class TrainingData(models.Model):
     review_text = models.CharField(verbose_name="Review Text", max_length=1000)
     review_type = models.SmallIntegerField(verbose_name="Review Type", choices=REVIEW_TYPE_CHOICES, default=1)

@@ -157,18 +157,19 @@ class ProductSearchThroughIDAPIView(APIView):
                 'category_name': product.category_name
             })
         user = User.objects.get(id=user_id)
+        subscribed_package, package = False, False
         try:
             subscribed_package = PackageConsumedDetail.objects.get(user_id=user_id, state=True)
         except PackageConsumedDetail.DoesNotExist:
-            return Response('', status.HTTP_400_BAD_REQUEST)
-
-        subscribed_package.Keywords_count = subscribed_package.Keywords_count + 1
-        subscribed_package.save()
+            pass
+        if subscribed_package:
+            subscribed_package.Keywords_count = subscribed_package.Keywords_count + 1
+            subscribed_package.save()
         try:
             package = Package.objects.get(pk=subscribed_package.package.id)
         except:
-            return Response('Package not found', status.HTTP_400_BAD_REQUEST)
-        if subscribed_package.Keywords_count >= package.package_keywords:
+            pass
+        if subscribed_package and package and subscribed_package.Keywords_count >= package.package_keywords:
             user.is_subscribed = False
             subscribed_package.state = False
             subscribed_package.save()
@@ -396,12 +397,19 @@ class PackageConsumedDetailAPIView(APIView):
 
 class ProductReviewStatsAPIView(APIView):
     def get(self, request, product_id):
-        product_review_stats = ProductReviewStats.objects.get(product=product_id)
-        return Response([
-            {"type": "positive", "value": product_review_stats.positive},
-            {"type": "neutral", "value": product_review_stats.neutral},
-            {"type": "negative", "value": product_review_stats.negative}
-        ])
+        try:
+            product_review_stats = ProductReviewStats.objects.get(product=product_id)
+            return Response([
+                {"type": "positive", "value": product_review_stats.positive},
+                {"type": "neutral", "value": product_review_stats.neutral},
+                {"type": "negative", "value": product_review_stats.negative}
+            ])
+        except:
+            return Response([
+                {"type": "positive", "value": 0},
+                {"type": "neutral", "value": 0},
+                {"type": "negative", "value": 0}
+            ])
 
     def post(self, request):
         serializer = ProductReviewStatsSerializer(data=request.data)
@@ -410,3 +418,9 @@ class ProductReviewStatsAPIView(APIView):
             serializer.save()
             return Response(serializer.data, status.HTTP_201_CREATED)
         return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+
+
+class PullReviewsAPIView(APIView):
+    def post(self,request):
+        pull_reviews.delay()
+        return Response("Scraping Started", status.HTTP_200_OK)
