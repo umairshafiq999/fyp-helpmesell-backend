@@ -36,11 +36,11 @@ def LocalSellerFileUpload(file):
             product = Product.objects.create(
                 product_name=row[0],
                 product_description='Great Phone',
-                product_image="https://www.apple.com/newsroom/images/product/iphone/standard/Apple_announce-iphone12pro_10132020.jpg.landing-big_2x.jpg",
+                product_image=GetImage(row[0]),
                 min_price=20000,
                 max_price=30000,
                 offered_by=3,
-                category_id=1,
+                category_id=2 if 'mobile' == row[2].lower() else 1,
                 category_name=subcategory_name[0:12]
 
             )
@@ -99,7 +99,7 @@ def ShopHiveScraper(url):
                     product = Product.objects.create(
                         product_name=row[0],
                         product_description='Great Phone',
-                        product_image=row[2]['data-src'],
+                        product_image=GetImage(row[0]),
                         category_id=1,
                         category_name=subcategory_name[0:12]
 
@@ -127,7 +127,7 @@ def ShopHiveScraper(url):
                     product = Product.objects.create(
                         product_name=row[0],
                         product_description='Great Phone',
-                        product_image=row[2]['data-src'],
+                        product_image=GetImage(row[0]),
                         category_id=2,
                         category_name=subcategory_name[0:12]
 
@@ -139,6 +139,20 @@ def ShopHiveScraper(url):
 
                     )
 
+
+def GetImage(ProductName):
+    url = 'https://www.google.com/search?q={0}&tbm=isch'.format(ProductName)
+    content = requests.get(url).content
+    soup = BeautifulSoup(content, 'lxml')
+    ProductImage = soup.findAll('img')
+    imgSrc = ''
+    i=0
+    for image in ProductImage:
+        imgSrc = image.get('src')
+        i = i + 1
+        if(i >= 2):
+            break
+    return imgSrc
 
 @shared_task
 def PakistaniStoresLaptopScraper(url):
@@ -316,12 +330,12 @@ def MegaPkScraper(url):
 @shared_task
 def pull_reviews():
     url = "https://walmart.p.rapidapi.com/reviews/v2/list"
-    product_list = list(Product.objects.filter().values('walmart_id', 'category_name', 'id').distinct())
+    product_list = list(Product.objects.filter().values('walmart_id', 'product_name', 'id').distinct())
     for product in product_list:
         if product['walmart_id'] == '':
             for walmart_const in walmart_ids_list:
-                if product['category_name'].upper() in walmart_const['product_name'].upper():
-                    Product.object.filter(pk=product['id']).update(walmart_id=walmart_const['walmart_id'])
+                if walmart_const['product_name'].upper() in product['product_name'].upper():
+                    Product.objects.filter(pk=product['id']).update(walmart_id=walmart_const['walmart_id'])
                     continue
     product_list = list(Product.objects.filter().exclude(walmart_id='').values('walmart_id', 'id').distinct())
     for product in product_list:
@@ -389,6 +403,15 @@ def fetch_review_type(review, review_type, product_id):
         except:
             product_review_stat = ProductReviewStats.objects.create(product_id=product_id)
             product_review_stat.positive =product_review_stat.positive + 1
+            product_review_stat.save()
+    elif result == 2:
+        try:
+            product_review_stat = ProductReviewStats.objects.get(product_id=product_id)
+            product_review_stat.neutral =product_review_stat.neutral + 1
+            product_review_stat.save()
+        except:
+            product_review_stat = ProductReviewStats.objects.create(product_id=product_id)
+            product_review_stat.neutral = product_review_stat.neutral + 1
             product_review_stat.save()
     else:
         try:
