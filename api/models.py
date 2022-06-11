@@ -70,6 +70,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
     is_subscribed = models.BooleanField(default=False)
+    reset_password_token = models.CharField(max_length=200, default='')
+    reset_password_token_valid = models.BooleanField(default=False)
 
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['password', 'first_name', 'last_name', 'dob', 'email', 'contact_no', 'state']

@@ -1,10 +1,9 @@
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models import *
-import requests
+import random, string
 from django.shortcuts import render, redirect
 from .serializers import *
-from urllib.parse import urlparse
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
@@ -48,23 +47,37 @@ class ForgetPasswordAPIView(APIView):
         user_email = request.data['email']
         try:
             user = User.objects.get(email=user_email)
-            Token.objects.get_or_create(user=user)
+            token = ''.join(random.choices(string.ascii_uppercase + string.digits, k=20))
+            user.reset_password_token = token
+            user.reset_password_token_valid = True
+            user.save()
         except User.DoesNotExist:
             return Response("Kindly enter the correct email", status.HTTP_400_BAD_REQUEST)
         send_mail("Password Change Request",
-                  'Kindly reset your password using the given link '+'http://127.0.0.1:8000/api/ResetPassword/',
-                  settings.EMAIL_HOST_USER,[user.email,])
+                  'Kindly reset your password using the given link ' + 'http://127.0.0.1:8000/api/EmailTokenVerification/' +
+                  token,
+                  settings.EMAIL_HOST_USER, [user.email, ])
+        return Response(
+            'Email has been sent',
+            status.HTTP_200_OK
+        )
 
 
 class GetTokenAPIView(APIView):
-    def get(self,request):
+    def get(self, request, reset_password_token):
+        try:
+            user = User.objects.get(reset_password_token=reset_password_token, reset_password_token_valid=True)
+            user.reset_password_token_valid = False
+            user.save()
+            return redirect(settings.FRONT_END_URL + '/ResetPassword/' + str(user.id))
+        except:
+            return redirect(settings.FRONT_END_URL + '/ResetPassword/')
 
-        return redirect('/ResetPassword')
 
 class ResetPasswordAPIView(APIView):
     def post(self, request):
-        User.objects.filter(email=loggedin_user).update(password=make_password(request.data["password"]))
-        return Response("Successfully password changed", status.HTTP_400_BAD_REQUEST)
+        User.objects.filter(id=request.data['user_id']).update(password=make_password(request.data["password"]))
+        return Response("Successfully password changed", status.HTTP_200_OK)
 
 
 class LocalSellerSignUpAPIView(APIView):

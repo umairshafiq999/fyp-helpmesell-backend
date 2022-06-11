@@ -27,7 +27,8 @@ urlpatterns = [
     path('api/ProductReviewStats/<int:product_id>/',ProductReviewStatsAPIView.as_view()),
     path('api/PullReviews/',PullReviewsAPIView.as_view()),
     path('api/UserStats/<int:id>/',UserStatisticsAPIView.as_view()),
-    path('api/SendEmail/<int:token>/',ForgetPasswordAPIView.as_view()),
+    path('api/ForgetPassword/',ForgetPasswordAPIView.as_view()),
+    path('api/EmailTokenVerification/<str:reset_password_token>/',GetTokenAPIView.as_view()),
     path('api/ResetPassword/',ResetPasswordAPIView.as_view()),
 
 ]

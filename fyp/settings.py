@@ -156,9 +156,9 @@ CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TASK_SERIALIZER = 'json'
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_USE_TLS = True
-EMAIL_PORT = 587
-EMAIL_HOST_USER = 'helpmesell0@gmail.com'
-EMAIL_HOST_PASSWORD = 'Cars322@'
+EMAIL_USE_TLS = False
+EMAIL_HOST = 'smtp-mail.outlook.com'
+EMAIL_HOST_USER = 'helpmesell0@outlook.com'
+EMAIL_HOST_PASSWORD = 'Sell322@'
+EMAIL_PORT = 25
+FRONT_END_URL = 'http://localhost:3000'
