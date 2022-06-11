@@ -1,8 +1,9 @@
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models import *
+from django.shortcuts import render, redirect
 from .serializers import *
-from django.views.decorators.csrf import csrf_exempt
+from urllib.parse import urlparse
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
@@ -12,6 +13,7 @@ from rest_framework.authtoken.models import Token
 from .task import *
 from django.conf import settings
 import stripe
+from django.core.mail import send_mail
 
 
 # Create your views here.
@@ -38,6 +40,28 @@ class GetUserAPIView(APIView):
         user = User.objects.get(id=id)
         serializer = UserSerializer(user)
         return Response(serializer.data)
+
+
+class SendEmailForPasswordResetAPIView(APIView):
+    def post(self, request):
+        user_email = request.data['email']
+        try:
+            user = User.objects.get(email=user_email)
+            to_send = {
+                'email': user.email,
+                'token': Token.objects.get_or_create(user=user)
+            }
+        except User.DoesNotExist:
+            return Response("Kindly enter the correct email", status.HTTP_400_BAD_REQUEST)
+        send_mail("Password Change Request", 'Kindly reset your password using the given link ','helpmesell@gmail.com',[user.email,])
+        return redirect(request.data['url'])
+
+
+class ResetPasswordAPIView(APIView):
+    def post(self, request, token):
+        loggedin_user = request.data['email']
+        User.objects.filter(email=loggedin_user).update(password=make_password(request.data["password"]))
+        return Response("Successfully password changed", status.HTTP_400_BAD_REQUEST)
 
 
 class LocalSellerSignUpAPIView(APIView):
@@ -421,6 +445,18 @@ class ProductReviewStatsAPIView(APIView):
 
 
 class PullReviewsAPIView(APIView):
-    def post(self,request):
+    def post(self, request):
         pull_reviews.delay()
         return Response("Scraping Started", status.HTTP_200_OK)
+
+
+class UserStatisticsAPIView(APIView):
+    def get(self, request, id):
+        package = PackageConsumedDetail.objects.get(user=id)
+        return Response(
+            {
+                'Package': package.package.package_name,
+                'Total': package.package.package_keywords,
+                'Consumed': package.Keywords_count,
+                'is_subscribed': package.user.is_subscribed
+            })

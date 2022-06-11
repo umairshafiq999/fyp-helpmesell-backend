@@ -6,7 +6,7 @@ from django.conf import settings
 
 urlpatterns = [
     path('users/',UserAPIView.as_view()),
-    path('user/<int:id>',GetUserAPIView.as_view()),
+    path('user/<int:id>/',GetUserAPIView.as_view()),
     path('localSellerSignUp/',LocalSellerSignUpAPIView.as_view()),
     path('userslogin/',UserLoginAPIView.as_view()),
     path('api-token-auth/', obtain_auth_token),
@@ -26,6 +26,7 @@ urlpatterns = [
     path('api/PackageConsumedDetail/',PackageConsumedDetailAPIView.as_view()),
     path('api/ProductReviewStats/<int:product_id>/',ProductReviewStatsAPIView.as_view()),
     path('api/PullReviews/',PullReviewsAPIView.as_view()),
+    path('api/UserStats/<int:id>/',UserStatisticsAPIView.as_view()),
 
 ]
 
