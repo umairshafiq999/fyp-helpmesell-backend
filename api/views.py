@@ -1,6 +1,7 @@
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models import *
+import requests
 from django.shortcuts import render, redirect
 from .serializers import *
 from urllib.parse import urlparse
@@ -42,24 +43,26 @@ class GetUserAPIView(APIView):
         return Response(serializer.data)
 
 
-class SendEmailForPasswordResetAPIView(APIView):
+class ForgetPasswordAPIView(APIView):
     def post(self, request):
         user_email = request.data['email']
         try:
             user = User.objects.get(email=user_email)
-            to_send = {
-                'email': user.email,
-                'token': Token.objects.get_or_create(user=user)
-            }
+            Token.objects.get_or_create(user=user)
         except User.DoesNotExist:
             return Response("Kindly enter the correct email", status.HTTP_400_BAD_REQUEST)
-        send_mail("Password Change Request", 'Kindly reset your password using the given link ','helpmesell@gmail.com',[user.email,])
-        return redirect(request.data['url'])
+        send_mail("Password Change Request",
+                  'Kindly reset your password using the given link '+'http://127.0.0.1:8000/api/ResetPassword/',
+                  settings.EMAIL_HOST_USER,[user.email,])
 
+
+class GetTokenAPIView(APIView):
+    def get(self,request):
+
+        return redirect('/ResetPassword')
 
 class ResetPasswordAPIView(APIView):
-    def post(self, request, token):
-        loggedin_user = request.data['email']
+    def post(self, request):
         User.objects.filter(email=loggedin_user).update(password=make_password(request.data["password"]))
         return Response("Successfully password changed", status.HTTP_400_BAD_REQUEST)
 
