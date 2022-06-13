@@ -14,6 +14,9 @@ from .task import *
 from django.conf import settings
 import stripe
 from django.core.mail import send_mail
+import os
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
 
 
 # Create your views here.
@@ -53,10 +56,14 @@ class ForgetPasswordAPIView(APIView):
             user.save()
         except User.DoesNotExist:
             return Response("Kindly enter the correct email", status.HTTP_400_BAD_REQUEST)
-        send_mail("Password Change Request",
-                  'Kindly reset your password using the given link ' + 'http://127.0.0.1:8000/api/EmailTokenVerification/' +
-                  token,
-                  settings.EMAIL_HOST_USER, [user.email, ])
+        message = Mail(
+            from_email='helpmesell5@gmail.com',
+            to_emails=user.email,
+            subject='Password Change Request',
+            html_content='Kindly reset your password using the given link ' + 'http://127.0.0.1:8000/api/EmailTokenVerification/' +
+                         token)
+        sg = SendGridAPIClient('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')
+        sg.send(message)
         return Response(
             'Email has been sent',
             status.HTTP_200_OK
@@ -127,8 +134,24 @@ class ProductAPIView(APIView):
     # permission_classes = [IsAuthenticated]
     def get(self, request):
         products = Product.objects.all()
-        serializer = ProductSerializer(products, many=True)
-        return Response(serializer.data)
+        # serializer = ProductSerializer(products, many=True)
+        # return Response(serializer.data)
+        product_list = []
+        for product in products:
+            product_list.append({
+                "id": product.id,
+                "product_name": product.product_name,
+                "product_description": "Great Phone",
+                "product_image": product.product_image,
+                "min_price": 0,
+                "max_price": 0,
+                "offered_by": 0,
+                "category": product.category.id,
+                "category_name": product.category_name,
+                "subcategory": product.subcategory.id,
+                "price": ''.join(i for i in product.price_set.all()[0].product_price if i.isdigit())
+            })
+        return Response(product_list, status.HTTP_200_OK)
 
     def post(self, request):
         serializer = ProductSerializer(data=request.data)
@@ -414,6 +437,13 @@ class PaymentAPIView(APIView):
                 package_id=Package.objects.get(package_price_id=request.data['price']).id,
                 state=True
             )
+            message = Mail(
+                from_email='helpmesell5@gmail.com',
+                to_emails=user.email,
+                subject='Welcome to HelpMeSell! Hooray!',
+                html_content='Your payment has been successful. Thank you for Subscribing to us.')
+            sg = SendGridAPIClient('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')
+            sg.send(message)
             return Response("Payment Successful", status.HTTP_200_OK)
 
         except:
@@ -463,7 +493,7 @@ class ProductReviewStatsAPIView(APIView):
 class PullReviewsAPIView(APIView):
     def post(self, request):
         pull_reviews.delay()
-        return Response("Scraping Started", status.HTTP_200_OK)
+        return Response("Reviews started to get pull", status.HTTP_200_OK)
 
 
 class UserStatisticsAPIView(APIView):

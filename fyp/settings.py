@@ -156,9 +156,11 @@ CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TASK_SERIALIZER = 'json'
 
-EMAIL_USE_TLS = False
-EMAIL_HOST = 'smtp-mail.outlook.com'
-EMAIL_HOST_USER = 'helpmesell0@outlook.com'
-EMAIL_HOST_PASSWORD = 'Sell322@'
-EMAIL_PORT = 25
+SENDGRID_API_KEY = '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'
+
+EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_HOST_USER = 'apikey' # this is exactly the value 'apikey'
+EMAIL_HOST_PASSWORD = SENDGRID_API_KEY
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
 FRONT_END_URL = 'http://localhost:3000'
