@@ -56,14 +56,6 @@ class ForgetPasswordAPIView(APIView):
             user.save()
         except User.DoesNotExist:
             return Response("Kindly enter the correct email", status.HTTP_400_BAD_REQUEST)
-        message = Mail(
-            from_email='helpmesell5@gmail.com',
-            to_emails=user.email,
-            subject='Password Change Request',
-            html_content='Kindly reset your password using the given link ' + 'http://127.0.0.1:8000/api/EmailTokenVerification/' +
-                         token)
-        sg = SendGridAPIClient('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')
-        sg.send(message)
         return Response(
             'Email has been sent',
             status.HTTP_200_OK
@@ -437,13 +429,6 @@ class PaymentAPIView(APIView):
                 package_id=Package.objects.get(package_price_id=request.data['price']).id,
                 state=True
             )
-            message = Mail(
-                from_email='helpmesell5@gmail.com',
-                to_emails=user.email,
-                subject='Welcome to HelpMeSell! Hooray!',
-                html_content='Your payment has been successful. Thank you for Subscribing to us.')
-            sg = SendGridAPIClient('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')
-            sg.send(message)
             return Response("Payment Successful", status.HTTP_200_OK)
 
         except:
