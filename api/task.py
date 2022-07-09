@@ -21,14 +21,15 @@ def DataCleaningOfShophive(price):
 
 
 @shared_task
-def LocalSellerFileUpload(file):
+def LocalSellerFileUpload(user_id,file):
     fileSheet = pandas.read_excel(file, sheet_name=0, index_col=0, header=0)
     for row in fileSheet.iterrows():
         try:
             product = Product.objects.get(product_name=row[0])
+            localseller = LocalSellerDetail.objects.get(local_seller_id=user_id)
             Price.objects.create(
                 product=product,
-                reference_site="Local Seller Data",
+                reference_site= localseller.shop_name + ',' + localseller.shop_address,
                 product_price=[int(s) for s in str(row[1]).split() if s.isdigit()][0]
             )
         except Product.DoesNotExist:
@@ -44,9 +45,10 @@ def LocalSellerFileUpload(file):
                 category_name=subcategory_name[0:12]
 
             )
+            localseller = LocalSellerDetail.objects.get(local_seller_id=user_id)
             Price.objects.create(
                 product_id=product.id,
-                reference_site="Local Seller Data",
+                reference_site= localseller.shop_name + ',' + localseller.shop_address,
                 product_price=[int(s) for s in str(row[1]).split() if s.isdigit()][0]
 
 

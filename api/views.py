@@ -32,7 +32,7 @@ class UserAPIView(APIView):
         user_serializer = UserSerializer(data=request.data)
 
         if user_serializer.is_valid():
-            user_serializer.save()
+            user_serializer.save(password=make_password(request.data['password']))
             user = User.objects.get(id=user_serializer.data['id'])
             user.is_subscribed = True
             user.save()
@@ -134,7 +134,6 @@ class UserLoginAPIView(ObtainAuthToken):
             'first_name': user.first_name,
             'state': user.state,
             'is_subscribed': user.is_subscribed
-
         })
 
 
@@ -189,6 +188,7 @@ class ProductDetailAPIView(APIView):
                 },
                 status=status.HTTP_200_OK
             )
+
 
         except Product.DoesNotExist:
             return Response(status.HTTP_400_BAD_REQUEST)
@@ -248,6 +248,13 @@ class ProductSearchThroughIDAPIView(APIView):
             subscribed_package.save()
             user.save()
 
+        package_detail = PackageConsumedDetail.objects.filter(user_id=user_id,state=1)
+        if len(package_detail):
+            package_taken = Package.objects.get(id=package_detail[0].package_id)
+            if package_detail[0].Keywords_count > package_taken.package_keywords:
+                return Response(status.HTTP_401_UNAUTHORIZED)
+        else:
+            return Response(status.HTTP_401_UNAUTHORIZED)
         return Response(
             {
                 'success': True,
@@ -255,7 +262,7 @@ class ProductSearchThroughIDAPIView(APIView):
                 'data': products
             },
             status=status.HTTP_200_OK
-        )
+    )
 
 
 class ProductSearchThroughNameAPIView(APIView):
@@ -361,7 +368,8 @@ class LocalSellerUploadedDataAPIView(APIView):
             data.user_id = request.data['user']
             data.save()
             file = settings.MEDIA_ROOT + data.ls_product_file.url[6:]
-            LocalSellerFileUpload.delay(file)
+            user_id = request.data['user']
+            LocalSellerFileUpload.delay(user_id,file)
             return Response(serializer.data, status.HTTP_201_CREATED)
         return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
@@ -508,7 +516,7 @@ class PullReviewsAPIView(APIView):
 
 class UserStatisticsAPIView(APIView):
     def get(self, request, id):
-        package = PackageConsumedDetail.objects.get(user=id)
+        package = PackageConsumedDetail.objects.filter(user=id, state=1)[0]
         user = User.objects.get(id=id)
         return Response(
             {
