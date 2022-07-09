@@ -30,6 +30,7 @@ urlpatterns = [
     path('api/ForgetPassword/',ForgetPasswordAPIView.as_view()),
     path('api/EmailTokenVerification/<str:reset_password_token>/',GetTokenAPIView.as_view()),
     path('api/ResetPassword/',ResetPasswordAPIView.as_view()),
+    path('api/ReportingStatistics',ReportingStatisticsAPIView.as_view())
 
 ]
 

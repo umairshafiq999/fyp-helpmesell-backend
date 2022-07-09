@@ -20,7 +20,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-%+!^xf6st9!-#36n3n&i1ls!h0e&&7^zb&b2e*q74xmmwxy6k*'
+SECRET_KEY = ''
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -113,7 +113,7 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 2,
 
 }
-STRIPE_SECRET_KEY = 'sk_test_51Ko90cFVG2XMVBbYFuMWHIak1hqntzIdBsS1rstEJDDbgofYvMeRMPYrrui9OujFmq364sT4DK9PUKWZWWy4qJcv00TbCH1iZ9'
+STRIPE_SECRET_KEY = ''
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/
@@ -156,4 +156,12 @@ CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TASK_SERIALIZER = 'json'
 
+SENDGRID_API_KEY = ''
+
+EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_HOST_USER = 'apikey' # this is exactly the value 'apikey'
+EMAIL_HOST_PASSWORD = SENDGRID_API_KEY
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+FRONT_END_URL = 'http://localhost:3000'
 

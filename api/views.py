@@ -13,7 +13,6 @@ from rest_framework.authtoken.models import Token
 from .task import *
 from django.conf import settings
 import stripe
-from django.core.mail import send_mail
 import os
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
@@ -30,12 +29,22 @@ class UserAPIView(APIView):
         return Response(serializer.data)
 
     def post(self, request):
-        user = UserSerializer(data=request.data)
+        user_serializer = UserSerializer(data=request.data)
 
-        if user.is_valid():
-            user.save(password=make_password(request.data["password"]))
-            return Response(user.data, status.HTTP_201_CREATED)
-        return Response(user.errors, status.HTTP_400_BAD_REQUEST)
+        if user_serializer.is_valid():
+            user_serializer.save()
+            user = User.objects.get(id=user_serializer.data['id'])
+            user.is_subscribed = True
+            user.save()
+            PackageConsumedDetail.objects.get_or_create(
+                package_id=1,
+                user_id=user_serializer.data['id'],
+                Keywords_count=0,
+                state=1
+            )
+            return Response(user_serializer.data, status.HTTP_201_CREATED)
+
+        return Response(user_serializer.errors, status.HTTP_400_BAD_REQUEST)
 
 
 class GetUserAPIView(APIView):
@@ -56,6 +65,14 @@ class ForgetPasswordAPIView(APIView):
             user.save()
         except User.DoesNotExist:
             return Response("Kindly enter the correct email", status.HTTP_400_BAD_REQUEST)
+        message = Mail(
+            from_email='helpmesell5@gmail.com',
+            to_emails=user.email,
+            subject='Password Change Request',
+            html_content='Kindly reset your password using the given link ' + 'http://172.20.146.105:8000/api/EmailTokenVerification/' +
+                         token)
+        sg = SendGridAPIClient(settings.SENDGRID_API_KEY)
+        sg.send(message)
         return Response(
             'Email has been sent',
             status.HTTP_200_OK
@@ -130,19 +147,20 @@ class ProductAPIView(APIView):
         # return Response(serializer.data)
         product_list = []
         for product in products:
-            product_list.append({
-                "id": product.id,
-                "product_name": product.product_name,
-                "product_description": "Great Phone",
-                "product_image": product.product_image,
-                "min_price": 0,
-                "max_price": 0,
-                "offered_by": 0,
-                "category": product.category.id,
-                "category_name": product.category_name,
-                "subcategory": product.subcategory.id,
-                "price": ''.join(i for i in product.price_set.all()[0].product_price if i.isdigit())
-            })
+            if not len([p for p in product_list if p['product_name'][:15] in product.product_name]):
+                product_list.append({
+                    "id": product.id,
+                    "product_name": product.product_name,
+                    "product_description": "Great Phone",
+                    "product_image": product.product_image,
+                    "min_price": 0,
+                    "max_price": 0,
+                    "offered_by": 0,
+                    "category": product.category.id,
+                    "category_name": product.category_name,
+                    "subcategory": product.subcategory.id,
+                    "price": ''.join(i for i in product.price_set.all()[0].product_price if i.isdigit())
+                })
         return Response(product_list, status.HTTP_200_OK)
 
     def post(self, request):
@@ -429,6 +447,13 @@ class PaymentAPIView(APIView):
                 package_id=Package.objects.get(package_price_id=request.data['price']).id,
                 state=True
             )
+            message = Mail(
+                from_email='helpmesell5@gmail.com',
+                to_emails=user.email,
+                subject='Welcome to HelpMeSell! Hooray!',
+                html_content='Your payment has been successful. Thank you for Subscribing to us.')
+            sg = SendGridAPIClient(settings.SENDGRID_API_KEY)
+            sg.send(message)
             return Response("Payment Successful", status.HTTP_200_OK)
 
         except:
@@ -484,10 +509,58 @@ class PullReviewsAPIView(APIView):
 class UserStatisticsAPIView(APIView):
     def get(self, request, id):
         package = PackageConsumedDetail.objects.get(user=id)
+        user = User.objects.get(id=id)
         return Response(
             {
-                'Package': package.package.package_name,
-                'Total': package.package.package_keywords,
-                'Consumed': package.Keywords_count,
-                'is_subscribed': package.user.is_subscribed
+                'package': package.package.package_name,
+                'total': package.package.package_keywords,
+                'consumed': package.Keywords_count,
+                'is_subscribed': package.user.is_subscribed,
+                'Designation': user.state
             })
+
+
+class ReportingStatisticsAPIView(APIView):
+    def get(self, request):
+        user = User.objects.all()
+        total_subscribed = PackageConsumedDetail.objects.all()
+        total_mobiles = Product.objects.filter(category_id=2)
+        total_laptops = Product.objects.filter(category_id=1)
+        total_standard_package = PackageConsumedDetail.objects.filter(package_id=2)
+        total_premium_package = PackageConsumedDetail.objects.filter(package_id=3)
+
+        count = 0
+        for user_count in user:
+            count=count+1
+        scount=0
+        for subscribed_count in total_subscribed:
+            scount=scount+1
+        mcount=0
+        for mobile_count in total_mobiles:
+            mcount=mcount+1
+        lcount = 0
+        for laptop_count in total_laptops:
+            lcount = lcount + 1
+        standard_count = 0
+        for standardcount in total_standard_package:
+            standard_count = standard_count + 1
+        premium_count = 0
+        for premiumcount in total_premium_package:
+            premium_count = premium_count + 1
+
+        if standard_count < premium_count:
+            most_bought_package = 'Premium Package'
+        else:
+            most_bought_package = 'Standard Package'
+
+        return Response(
+            {
+                'user_count': count,
+                'mobile_count': mcount,
+                'laptop_count': lcount,
+                'Most Bought Package': most_bought_package,
+                'Total Subscribed': scount
+                # 'Designation': user.state
+            })
+
+

@@ -1,7 +1,7 @@
 USER_STATE_CHOICES = (
-        (1, 'customer'),
+        (1, 'admin'),
         (2, 'localseller'),
-        (3, 'admin'),
+        (3, 'customer'),
 
     )
 REVIEW_TYPE_CHOICES = (
@@ -95,4 +95,128 @@ walmart_ids_list = [{  "product_name" : "Apple iPhone SE 2022 256gb",
 {   "product_name" : "Acer Nitro 5",
     "walmart_id" : 541040244
 },
+{
+	"product_name": "Xiaomi Redmi Note 11",
+	"walmart_id": 306201591
+},
+{
+	"product_name": "Xiaomi Redmi 10",
+	"walmart_id": 747086737
+},
+{
+	"product_name": "Xiaomi 11T Pro",
+	"walmart_id": 112789619
+},
+{
+	"product_name": "Redmi 9T",
+	"walmart_id": 432604053
+},
+{
+	"product_name": "Xiaomi POCO F3",
+	"walmart_id": 435759821
+},
+{
+	"product_name": "Xiaomi Mi 11 Lite",
+	"walmart_id": 784065316
+},
+{
+	"product_name": "Dell Latitude E5430",
+	"walmart_id": 632856127
+},
+{
+	"product_name": "Dell Latitude E5420",
+	"walmart_id": 376791632
+},
+{
+	"product_name": "Dell Vostro 3550",
+	"walmart_id": 123326041
+},
+{
+	"product_name": "Dell latitude E6520",
+	"walmart_id": 995479372
+},
+{
+	"product_name": "Dell Latitude E5530",
+	"walmart_id": 357415490
+},
+{
+	"product_name": "Dell Latitude 3350",
+	"walmart_id": 484003198
+},
+{
+	"product_name": "Dell Latitude 3340",
+	"walmart_id": 592123568
+},
+{
+	"product_name": "Dell Latitude E3340",
+	"walmart_id": 124282283
+},
+{
+	"product_name": "Dell Latitude E7440",
+	"walmart_id": 53946922
+},
+{
+	"product_name": "Dell Latitude E7250",
+	"walmart_id": 56061045
+},
+{
+	"product_name": "Dell Latitude E5470",
+	"walmart_id": 220376835
+},
+{
+	"product_name": "Dell Precision M6800",
+	"walmart_id": 142711907
+},
+{
+	"product_name": "Dell Latitude 5480",
+	"walmart_id": 403257827
+},
+{
+	"product_name": "Dell Vostro 14",
+	"walmart_id": 680464283
+},
+{
+	"product_name": "Dell Vostro 15",
+	"walmart_id": 937324611
+},
+{
+	"product_name": "Dell Vostro 3500",
+	"walmart_id": 303028906
+},
+{
+	"product_name": "Dell Vostro 3490",
+	"walmart_id": 648786214
+},
+{
+	"product_name": "Dell Inspiron 3501",
+	"walmart_id": 885317585
+},
+{
+	"product_name": "Dell Latitude 5285",
+	"walmart_id": 667283834
+},
+{
+	"product_name": "Dell Latitude 3510",
+	"walmart_id": 890666940
+},
+{
+	"product_name": "Dell Latitude 3000",
+	"walmart_id": 588870143
+},
+{
+	"product_name": "Dell Latitude 3520",
+	"walmart_id": 824809360
+},
+{
+	"product_name": "Dell Latitude 3000",
+	"walmart_id": 588870143
+},
+{
+	"product_name": "Samsung Galaxy A12",
+	"walmart_id": 844177779
+},
+{
+	"product_name": "Samsung Galaxy A03",
+	"walmart_id": 706770009
+}
 ]

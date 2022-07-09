@@ -40,7 +40,7 @@ def LocalSellerFileUpload(file):
                 min_price=20000,
                 max_price=30000,
                 offered_by=3,
-                category_id=2 if 'mobile' == row[2].lower() else 1,
+                category_id=2 if row[0].lower() in ['Samsung', 'Apple'] else 1,
                 category_name=subcategory_name[0:12]
 
             )
@@ -342,7 +342,7 @@ def pull_reviews():
         querystring = {"usItemId": product['walmart_id'], "limit": "50", "page": "1", "sort": "relevancy"}
         headers = {
             "X-RapidAPI-Host": "walmart.p.rapidapi.com",
-            "X-RapidAPI-Key": "40a9eb4a05mshd8902de7fc70215p1c86bajsncfcb33bad973"
+            "X-RapidAPI-Key": "26fb418dfbmsh1b4e826435e387dp118bb5jsn096722e71d21"
         }
         response = requests.request("GET", url, headers=headers, params=querystring)
         for review in json.loads(response.text)['data']['reviews']['customerReviews']:
